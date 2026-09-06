@@ -397,7 +397,7 @@
     },
     {
       "id": "MV-024",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P6",
       "title": "읽기 영역 글꼴 크기 조절",
@@ -409,11 +409,11 @@
       "deps": [
         "MV-011"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-025",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P6",
       "title": "보기 수명주기와 읽던 자리 유지",
@@ -425,11 +425,11 @@
       "deps": [
         "MV-024"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-026",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P6",
       "title": "읽기 전용 확인",
@@ -441,7 +441,7 @@
       "deps": [
         "MV-025"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-027",
