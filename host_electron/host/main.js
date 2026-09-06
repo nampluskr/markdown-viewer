@@ -1,6 +1,7 @@
 const electron = require("electron");
 const fs = require("fs");
 const path = require("path");
+const { createDomainHandler } = require("./domain.js");
 
 const isElectron = typeof electron === "object" && electron !== null && "ipcMain" in electron;
 const app = isElectron ? electron.app : null;
@@ -8,7 +9,7 @@ const BrowserWindow = isElectron ? electron.BrowserWindow : null;
 const dialog = isElectron ? electron.dialog : null;
 const ipcMain = isElectron ? electron.ipcMain : null;
 
-const APP_NAME = "Explorer Templates";
+const APP_NAME = "Markdown Viewer";
 const APP_VERSION = "v0.1";
 const RUNTIME_NAME = "Electron";
 
@@ -347,11 +348,23 @@ async function handleBridge(method, ...args) {
   }
 
   if (method === "call_domain") {
-    return fail("UNSUPPORTED_TARGET", ERROR_MESSAGES.UNSUPPORTED_TARGET);
+    if (!domainHandler) {
+      domainHandler = createDomainHandler({
+        resolveInsideRoot,
+        isInsideRoot,
+        getRootPath: () => rootPath,
+        fail,
+        result,
+        ERROR_MESSAGES
+      });
+    }
+    return domainHandler(args[0], ...args.slice(1));
   }
 
   return fail("UNSUPPORTED_TARGET", ERROR_MESSAGES.UNSUPPORTED_TARGET);
 }
+
+let domainHandler = null;
 
 function createWindow() {
   const currentTheme = settingsState.settings.shell.theme || "gray";

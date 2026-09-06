@@ -1,0 +1,296 @@
+/* presets/markdown/markdown.css — 마크다운 및 코드 읽기 영역 스타일 (FR-4) */
+/* 토큰을 거치지 않은 색상이 0건이어야 함 (NFR-4) */
+
+.markdown-view-container,
+.code-view-container {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+  padding: var(--space-4);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  line-height: 1.6;
+}
+
+.markdown-body {
+  max-width: 960px;
+  margin: 0 auto;
+  font-size: calc(var(--font-size, 12px) * var(--reading-zoom, 1));
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  color: var(--color-text);
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-2);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.markdown-body h1 {
+  font-size: 2em;
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.markdown-body h2 {
+  font-size: 1.5em;
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.markdown-body h3 { font-size: 1.25em; }
+.markdown-body h4 { font-size: 1em; }
+.markdown-body h5 { font-size: 0.875em; }
+.markdown-body h6 { font-size: 0.85em; color: var(--color-muted); }
+
+.markdown-body p,
+.markdown-body ul,
+.markdown-body ol {
+  margin-top: 0;
+  margin-bottom: var(--space-3);
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 2em;
+}
+
+.markdown-body li {
+  margin-bottom: var(--space-1);
+}
+
+.markdown-body li.task-list-item {
+  list-style-type: none;
+  margin-left: -1.5em;
+}
+
+.markdown-body li.task-list-item input[type="checkbox"] {
+  margin-right: var(--space-2);
+  vertical-align: middle;
+}
+
+.markdown-body hr {
+  height: 0;
+  border: none;
+  border-top: 1px solid var(--color-divider);
+  margin: var(--space-4) 0;
+}
+
+.markdown-body blockquote {
+  margin: 0 0 var(--space-3) 0;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-muted);
+  border-left: 4px solid var(--color-border);
+  background-color: var(--color-surface);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.markdown-body table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: var(--space-3);
+  display: block;
+  overflow-x: auto;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+}
+
+.markdown-body table th {
+  font-weight: 600;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+}
+
+.markdown-body table tr:nth-child(2n) {
+  background-color: var(--color-surface);
+}
+
+.markdown-body code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 2px 4px;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-radius: 3px;
+  border: 1px solid var(--color-divider);
+}
+
+.markdown-body pre {
+  margin: 0 0 var(--space-3) 0;
+  padding: var(--space-3);
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  line-height: 1.45;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-divider);
+  position: relative;
+}
+
+.markdown-body pre code {
+  padding: 0;
+  background-color: transparent;
+  border: none;
+  color: inherit;
+  font-size: inherit;
+}
+
+.markdown-body a {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.markdown-body a:hover {
+  color: var(--color-muted);
+}
+
+.markdown-body img {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.markdown-img-error {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  color: var(--color-muted);
+  border-radius: var(--radius);
+  font-size: 0.9em;
+  margin: var(--space-1) 0;
+}
+
+.code-block-wrapper {
+  position: relative;
+  margin-bottom: var(--space-3);
+}
+
+.code-block-wrapper pre {
+  margin-bottom: 0;
+}
+
+.code-copy-btn {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  padding: 2px 8px;
+  font-size: 11px;
+  font-family: var(--font-ui);
+  background-color: var(--color-raised);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.code-block-wrapper:hover .code-copy-btn {
+  opacity: 1;
+}
+
+.code-copy-btn:hover {
+  background-color: var(--color-hover);
+}
+
+.code-copy-btn.copied {
+  border-color: var(--color-focus-ring);
+}
+
+.code-copy-btn.copy-failed {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+/* 텍스트/코드 뷰어 레이아웃 */
+.code-viewer-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+.code-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-divider);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--color-muted);
+  flex-shrink: 0;
+}
+
+.code-viewer-content {
+  display: flex;
+  flex: 1;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: calc(var(--font-size, 12px) * var(--reading-zoom, 1));
+  line-height: 1.5;
+  background-color: var(--color-bg);
+}
+
+.code-viewer-gutters {
+  padding: var(--space-3) var(--space-2);
+  text-align: right;
+  user-select: none;
+  color: var(--color-muted);
+  border-right: 1px solid var(--color-divider);
+  background-color: var(--color-surface);
+  flex-shrink: 0;
+}
+
+.code-viewer-lines {
+  padding: var(--space-3);
+  margin: 0;
+  flex: 1;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--color-text);
+}
+
+/* 에러 상태 뷰 */
+.view-error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-muted);
+}
+
+.view-error-code {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--color-danger);
+  margin-bottom: var(--space-2);
+}
+
+.view-error-message {
+  font-size: 1em;
+  max-width: 500px;
+}

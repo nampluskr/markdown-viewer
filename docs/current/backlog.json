@@ -156,7 +156,7 @@
     },
     {
       "id": "MV-009",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P3",
       "title": "마크다운 렌더러 반입과 버전 고정",
@@ -168,11 +168,11 @@
       "deps": [
         "MV-003"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-010",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P3",
       "title": "GFM 요소 렌더링",
@@ -184,11 +184,11 @@
       "deps": [
         "MV-009"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-011",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P3",
       "title": "읽기 영역 스타일과 세 테마 연동",
@@ -200,11 +200,11 @@
       "deps": [
         "MV-010"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-012",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P3",
       "title": "렌더 결과 정화",
@@ -216,11 +216,11 @@
       "deps": [
         "MV-010"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-013",
-      "status": "todo",
+      "status": "done",
       "priority": "medium",
       "category": "P3",
       "title": "오프라인 동작 판정",
@@ -232,7 +232,7 @@
       "deps": [
         "MV-011"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-014",
