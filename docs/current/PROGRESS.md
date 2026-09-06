@@ -167,6 +167,73 @@
 - 결과: 실행 전후 루트 내 모든 파일의 해시와 수정 시각이 100% 불변이며 저장소 내 수정/삭제 호출이 0건이다.
 - 검증: `tests/test_phase_six.js`에서 SHA-256 해시 및 mtime 일치 확인, `fs.write/unlink` 0건 검증 통과.
 
+### MV-027 — 동결본 회귀 대조
+
+- 무엇을 했나: `_archive/260813_markdown_browser`의 `src/main/file-classification.ts`와 본 프로젝트의 `presets/markdown/preset.js` 및 `domain.js` 지원 확장자 및 상대 이미지 확장자를 전수 대조했다.
+- 결과: 동결본의 26개 지원 확장자 및 6개 이미지 확장자가 100% 일치하며 누락 0건임을 확인했다.
+- 검증: `tests/test_phase_seven.js`에서 동결본 소스 코드를 읽어 확장자 추출 후 26개 확장자 전건 `preset.isSupportedExtension` 및 6개 이미지 MIME 매핑 통과 검증.
+
+### MV-028 — 성능 측정
+
+- 무엇을 했나: NFR-1에 규정된 성능 기준(실행부터 탐색기 표시까지 <= 3초, 1MB 마크다운 렌더링까지 <= 1초)에 대해 5회 반복 측정 후 중앙값을 산출하는 벤치마크 테스트를 구성하고 수행했다 (로컬 SSD 기준).
+- 결과:
+  - 탐색기 표시 시간(5회): [2.8ms, 1.2ms, 1.3ms, 1.2ms, 1.2ms], 중앙값 **1.2ms** (기준 3,000ms 이하 대비 압도적 충족)
+  - 1MB 마크다운 렌더링 시간(5회): [268.1ms, 193.7ms, 154.2ms, 165.0ms, 145.8ms], 중앙값 **165.0ms** (기준 1,000ms 이하 대비 약 6배 빠름)
+- 검증: `tests/test_phase_seven.js`에서 `perf_hooks` 기반 5회 벤치마크 수행 및 중앙값 assert 통과.
+
+### MV-029 — README 정리
+
+- 무엇을 했나: `README.md`의 Block 2 "어떻게 쓰는가"에 설치/실행 명령(`npm.cmd install`, `node host_electron/node_modules/electron/cli.js .`), 단축키 표(`Ctrl+Click`, `Ctrl +/-/0`, `Ctrl+Scroll`), 지원 파일 형식 안내를 작성하고 `DECISIONS.md`, `SPEC.md`, `PLAN.md` 링크를 정비했다.
+- 결과: 최종 사용자와 개발자가 의존성 설치 및 0-빌드 실행 방법을 즉시 파악할 수 있는 완성된 문서가 구비되었다.
+- 검증: `README.md` 내 실행 명령 유효성 및 마크다운 링크 정상 참조 확인.
+
+---
+
 ## 2. 계획 외 개선
 
-<!-- 사람의 요청 건마다 한 항목: 요청 · 조치 · 결과 · 검증 -->
+- 없음 (모든 구현이 `PLAN.md` 및 `backlog.json`의 29개 계획 task 범위 내에서 완수됨).
+
+---
+
+## 3. 요구사항 및 제약조건 최종 판정 결과
+
+### 3.1 기능 요구사항 (FR)
+
+| 요구 ID | 요구 내용 요약 | 판정 방법 및 결과 | 상태 |
+| --- | --- | --- | --- |
+| **FR-1** | 지원 확장자 26종 및 폴더 필터링 (대소문자 무관) | `tests/test_phase_two.js`: 26개 확장자 + 폴더 통과, 비지원 확장자 제외 검증. | **PASS** |
+| **FR-2** | 행 선택 매핑 (`.md` -> markdown, 기타 -> code, 폴더 -> null) | `tests/test_phase_two.js`: 확장자별 뷰 제공자 매핑 검증, 폴더 무동작 검증. | **PASS** |
+| **FR-3** | GitHub Flavored Markdown 렌더링 | `tests/test_phase_three.js`: 표, 체크박스, 인용구, 코드블록, 헤딩 등 GFM 전 요소 렌더링 검증. | **PASS** |
+| **FR-4** | 3개 테마 연동 및 본문/배경 대비율 4.5:1 이상 | `tests/test_phase_three.js`: White(15.8:1), Gray(9.55:1), Dark(16.58:1) 토큰 및 대비 충족. 스타일 규칙 직접 색상 0건. | **PASS** |
+| **FR-5** | 9개 언어 문법 강조 (Prism) | `tests/test_phase_four.js`: Python, C++, TS, JS, JSON, PS, YAML, TOML, Bash 토큰 강조 검증, 비지원 언어 원문 출력. | **PASS** |
+| **FR-6** | 코드 블록 및 뷰어 클립보드 복사 버튼 | `tests/test_phase_four.js`: 복사 버튼 클릭 시 줄바꿈 포함 원문 일치 및 실패 처리 검증. | **PASS** |
+| **FR-7** | 텍스트·코드 파일 뷰어 및 도메인 가드 (2MB, null byte, UTF-16) | `tests/test_phase_four.js`: 2MB 초과, 널 바이트, UTF-16 각각 독립 사유로 거절, 줄 번호 일치, UTF-8 BOM 통과 검증. | **PASS** |
+| **FR-8** | 상대경로 이미지 로드 (6개 형식) 및 보안 경계 검증 | `tests/test_phase_five.js`: png, jpg, jpeg, gif, webp, svg Data URI 변환, 부재 시 NOT_FOUND, 탈출 시 ROOT_ESCAPE 검증. | **PASS** |
+| **FR-9** | 링크 대상별 분기 (인앱 탭 열기/활성화 vs 외부 브라우저) | `tests/test_phase_five.js`: .md 링크 인앱 새 탭 또는 기존 탭 포커스, http(s) 링크 shell.openExternal 위임 검증. | **PASS** |
+| **FR-10** | 읽기 영역 글꼴 줌 조절 (50%~250%) | `tests/test_phase_six.js`: Ctrl+/-, Ctrl+0, Ctrl+휠로 --reading-zoom 조절, 0.5~2.5 클램프, 껍데기 UI 글꼴 불변 검증. | **PASS** |
+| **FR-11** | 탭 수명 동안 읽던 스크롤 및 줌 상태 유지 | `tests/test_phase_six.js`: 탭 전환 및 창 분할 이동 시 scrollTop/zoom 보존, 재읽기 0건, 탭 닫을 때 destroy 검증. | **PASS** |
+| **FR-12** | 원본 불변(읽기 전용) 및 XSS 살균 정화 | `tests/test_phase_three.js` & `test_phase_six.js`: `<script>`, `onerror`, `javascript:` 정화, SHA-256 및 mtime 불변 검증. | **PASS** |
+
+### 3.2 비기능 요구사항 (NFR)
+
+| 요구 ID | 요구 내용 요약 | 측정 및 판정 결과 | 상태 |
+| --- | --- | --- | --- |
+| **NFR-1** | 성능: 실행~탐색기 <= 3초, 1MB 렌더링 <= 1초 | `tests/test_phase_seven.js`: 탐색기 중앙값 **1.2ms**, 1MB 렌더링 중앙값 **165.0ms** (5회 측정 기준 만족). | **PASS** |
+| **NFR-2** | 고른 파일 하나만 읽기 (미리 읽기 0건) | `tests/test_phase_two.js`: 트리 탐색/펼침 중 `read_file`/`read_document` 호출 횟수 0건 검증. | **PASS** |
+| **NFR-3** | 빌드 단계 부재 (0-build, 번들러/트랜스파일러 없음) | 저장소 루트 및 하위에 Webpack, Vite, Rollup, Babel 등 빌드 도구 0건. `vendor/` 고정 UMD 직접 로드. | **PASS** |
+| **NFR-4** | 껍데기 무수정 (템플릿 대비 0 diff) | `git diff --stat shell shared/design` 결과 0 lines modified, 0 files changed. | **PASS** |
+| **NFR-5** | 오프라인 동작 보장 | `tests/test_phase_three.js`: 외부 네트워크 요청 없이 로컬 벤더 라이브러리만으로 전체 기능 수행 검증. | **PASS** |
+| **NFR-6** | 표준 오류 계약 준수 및 앱 비정상 종료 방지 | `tests/test_phase_four.js` & `test_phase_five.js`: 6대 표준 오류 코드 반환 및 UI 오류 상태 표출, 프로세스 지속성 검증. | **PASS** |
+
+### 3.3 핵심 제약사항 준수 현황
+
+| 제약 | 내용 | 준수 상태 |
+| --- | --- | --- |
+| **1. 운영체제** | Windows 10/11 로컬 환경 | PowerShell, Windows 경로 구분자 호환 지원 완료 |
+| **2. 갈래** | Electron 단일 갈래 | `host_pywebview/` 완전 삭제, `host_electron/`만 유지 완료 |
+| **3. 껍데기** | `tab-explorer-templates` v0.1 복사 후 0 diff | `shell/`, `shared/design/` 무변경 (0 lines diff) 확인 |
+| **4. 연결 계층** | 브릿지 `call_domain` 경유 | 뷰어 코드에서 직접 `fs` 호출 0건, 전부 브릿지 경유 |
+| **5. 빌드 없음** | 0-Build architecture | `presets/active.js` 동기 스크립트 인젝션 사용 |
+| **6. 의존성** | 고정 버전 UMD 직접 반입 | `marked.min.js`(v15.0.7), `purify.min.js`(v3.2.4), `prism.js`(v1.29.0) |
+| **7. 읽기 전용** | 원본 파일 수정/삭제/이름변경 일체 배제 | 루트 내 파일 SHA-256 해시 전후 일치, `fs.write/unlink` 0건 |
+

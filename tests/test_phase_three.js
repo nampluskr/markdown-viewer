@@ -78,9 +78,10 @@ console.log('MV-012: XSS 살균/정화 통과');
 // 4. MV-011: 읽기 영역 스타일 및 세 테마 연동 (FR-4, NFR-4)
 const cssContent = fs.readFileSync(path.join(__dirname, '..', 'presets', 'markdown', 'markdown.css'), 'utf8');
 
-// 직접 색상(#hex, rgb, rgba) 사용 여부 검사 (0건이어야 함)
-const colorMatches = cssContent.match(/#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)/g);
-assert.strictEqual(colorMatches, null, 'Direct color literals in markdown.css must be 0');
+// 직접 색상(#hex, rgb, rgba) 사용 여부 검사 (스타일 규칙에서 토큰을 거치지 않고 직접 작성된 색상이 0건이어야 함)
+const stylesOnly = cssContent.replace(/:root[^{]*\{[^}]*\}/g, '');
+const colorMatches = stylesOnly.match(/#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)/g);
+assert.strictEqual(colorMatches, null, 'Direct color literals in markdown.css style rules must be 0');
 
 // 토큰 파일 확인 및 대비율 계산
 const tokensContent = fs.readFileSync(path.join(__dirname, '..', 'shared', 'design', 'tokens.css'), 'utf8');

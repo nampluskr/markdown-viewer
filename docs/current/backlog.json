@@ -445,7 +445,7 @@
     },
     {
       "id": "MV-027",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P7",
       "title": "동결본 회귀 대조",
@@ -459,11 +459,11 @@
         "MV-023",
         "MV-019"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-028",
-      "status": "todo",
+      "status": "done",
       "priority": "medium",
       "category": "P7",
       "title": "성능 측정",
@@ -475,11 +475,11 @@
       "deps": [
         "MV-027"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-029",
-      "status": "todo",
+      "status": "done",
       "priority": "medium",
       "category": "P7",
       "title": "문서 규약 검사와 버전 마감",
@@ -491,7 +491,7 @@
       "deps": [
         "MV-028"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     }
   ]
 }
