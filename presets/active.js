@@ -10,7 +10,8 @@
     // 1. vendor 라이브러리 동기 로드
     var vendorLibs = [
       '../vendor/marked.min.js',
-      '../vendor/purify.min.js'
+      '../vendor/purify.min.js',
+      '../vendor/prism.js'
     ];
     for (var v = 0; v < vendorLibs.length; v++) {
       document.write('<script src="' + vendorLibs[v] + '"><\/script>');

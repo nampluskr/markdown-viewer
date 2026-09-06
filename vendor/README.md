@@ -11,3 +11,4 @@
 | --- | --- | --- | --- |
 | `marked` | `15.0.7` | `vendor/marked.min.js` | GFM 마크다운 렌더러 (FR-3, NFR-3) |
 | `dompurify` | `3.2.4` | `vendor/purify.min.js` | HTML 살균/정화 (FR-12, D-6) |
+| `prismjs` | `1.29.0` | `vendor/prism.js` | 9개 언어 문법 강조기 (FR-5, NFR-3) |

@@ -1,5 +1,32 @@
 /* presets/markdown/markdown.css — 마크다운 및 코드 읽기 영역 스타일 (FR-4) */
-/* 토큰을 거치지 않은 색상이 0건이어야 함 (NFR-4) */
+
+/* 문법 강조 디자인 토큰 (FR-4, FR-5) */
+:root[data-theme="white"] {
+  --syntax-comment: #6e7781;
+  --syntax-punctuation: #24292f;
+  --syntax-keyword: #cf222e;
+  --syntax-string: #0a3069;
+  --syntax-function: #8250df;
+  --syntax-number: #0550ae;
+  --syntax-operator: #cf222e;
+  --syntax-variable: #953800;
+  --syntax-class: #8250df;
+  --syntax-property: #0550ae;
+}
+
+:root[data-theme="gray"],
+:root[data-theme="dark"] {
+  --syntax-comment: #8b949e;
+  --syntax-punctuation: #c9d1d9;
+  --syntax-keyword: #ff7b72;
+  --syntax-string: #a5d6ff;
+  --syntax-function: #d2a8ff;
+  --syntax-number: #79c0ff;
+  --syntax-operator: #ff7b72;
+  --syntax-variable: #ffa657;
+  --syntax-class: #d2a8ff;
+  --syntax-property: #79c0ff;
+}
 
 .markdown-view-container,
 .code-view-container {
@@ -216,6 +243,59 @@
 .code-copy-btn.copy-failed {
   border-color: var(--color-danger);
   color: var(--color-danger);
+}
+
+/* Prism 문법 강조 클래스 */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: var(--syntax-comment);
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: var(--syntax-punctuation);
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol {
+  color: var(--syntax-number);
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin {
+  color: var(--syntax-string);
+}
+
+.token.operator,
+.token.entity,
+.token.url {
+  color: var(--syntax-operator);
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: var(--syntax-keyword);
+}
+
+.token.function,
+.token.class-name {
+  color: var(--syntax-function);
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: var(--syntax-variable);
 }
 
 /* 텍스트/코드 뷰어 레이아웃 */

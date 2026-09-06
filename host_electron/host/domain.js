@@ -52,16 +52,16 @@ function createDomainHandler({ resolveInsideRoot, isInsideRoot, getRootPath, fai
         return fail(code, ERROR_MESSAGES[code]);
       }
 
-      // 3. 널 바이트(바이너리) 검사 (D-8, FR-7)
-      if (buffer.includes(0x00)) {
-        return fail('UNSUPPORTED_TARGET', '바이너리 파일(널 바이트 포함)은 지원하지 않습니다.');
-      }
-
-      // 4. UTF-16 BOM 검사 (D-8, FR-7)
+      // 3. UTF-16 BOM 검사 (D-8, FR-7)
       if (buffer.length >= 2) {
         if ((buffer[0] === 0xff && buffer[1] === 0xfe) || (buffer[0] === 0xfe && buffer[1] === 0xff)) {
           return fail('UNSUPPORTED_TARGET', 'UTF-8(BOM 포함) 외의 인코딩(UTF-16)은 지원하지 않습니다.');
         }
+      }
+
+      // 4. 널 바이트(바이너리) 검사 (D-8, FR-7)
+      if (buffer.includes(0x00)) {
+        return fail('UNSUPPORTED_TARGET', '바이너리 파일(널 바이트 포함)은 지원하지 않습니다.');
       }
 
       // 5. UTF-8 인코딩 유효성 검사

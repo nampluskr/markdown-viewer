@@ -16,6 +16,13 @@
     return cut >= 0 ? normalized.slice(0, cut) : '';
   }
 
+  function getExtension(name) {
+    if (!name || typeof name !== 'string') return '';
+    var idx = name.lastIndexOf('.');
+    if (idx < 0) return '';
+    return name.slice(idx).toLowerCase();
+  }
+
   function escapeHtml(str) {
     if (typeof str !== 'string') return '';
     return str
@@ -32,6 +39,76 @@
     return null;
   }
 
+  var LANG_MAP = {
+    'python': 'python',
+    'py': 'python',
+    '.py': 'python',
+    '.pyi': 'python',
+
+    'cpp': 'cpp',
+    'c++': 'cpp',
+    '.cpp': 'cpp',
+    '.cc': 'cpp',
+    '.cxx': 'cpp',
+    '.h': 'cpp',
+    '.hpp': 'cpp',
+
+    'typescript': 'typescript',
+    'ts': 'typescript',
+    '.ts': 'typescript',
+    '.tsx': 'typescript',
+
+    'javascript': 'javascript',
+    'js': 'javascript',
+    '.js': 'javascript',
+    '.jsx': 'javascript',
+    '.mjs': 'javascript',
+    '.cjs': 'javascript',
+
+    'json': 'json',
+    'jsonc': 'json',
+    '.json': 'json',
+    '.jsonc': 'json',
+
+    'powershell': 'powershell',
+    'ps1': 'powershell',
+    '.ps1': 'powershell',
+    '.psm1': 'powershell',
+    '.psd1': 'powershell',
+
+    'yaml': 'yaml',
+    'yml': 'yaml',
+    '.yaml': 'yaml',
+    '.yml': 'yaml',
+
+    'toml': 'toml',
+    '.toml': 'toml',
+
+    'bash': 'bash',
+    'sh': 'bash',
+    '.sh': 'bash',
+    '.bash': 'bash'
+  };
+
+  function resolvePrismLanguage(identifier) {
+    if (!identifier || typeof identifier !== 'string') return null;
+    var clean = identifier.trim().toLowerCase();
+    return LANG_MAP[clean] || null;
+  }
+
+  function highlightCode(code, langKey) {
+    var prism = (typeof window !== 'undefined' && window.Prism) ||
+                (typeof root !== 'undefined' && root.Prism) || null;
+    if (!prism || !langKey || !prism.languages || !prism.languages[langKey]) {
+      return escapeHtml(code);
+    }
+    try {
+      return prism.highlight(code, prism.languages[langKey], langKey);
+    } catch {
+      return escapeHtml(code);
+    }
+  }
+
   function sanitizeHtml(dirtyHtml) {
     var purifier = (typeof window !== 'undefined' && window.DOMPurify) ||
                    (typeof root !== 'undefined' && root.DOMPurify) || null;
@@ -42,7 +119,6 @@
         FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur']
       });
     }
-    // 기본 살균 폴백 (스크립트 태그, 이벤트 핸들러, javascript: 링크 제거)
     return dirtyHtml
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/on\w+\s*=\s*"[^"]*"/gi, '')
@@ -52,7 +128,11 @@
   }
 
   function copyToClipboard(text, buttonEl) {
-    if (!navigator || !navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+    var nav = (typeof root !== 'undefined' && root.mockNavigator) ||
+              (typeof window !== 'undefined' && window.navigator) ||
+              (typeof globalThis !== 'undefined' && globalThis.navigator) || null;
+    var clip = nav && nav.clipboard;
+    if (!clip || typeof clip.writeText !== 'function') {
       if (buttonEl) {
         buttonEl.textContent = '복사 실패';
         buttonEl.classList.add('copy-failed');
@@ -64,7 +144,7 @@
       return Promise.reject(new Error('Clipboard API not available'));
     }
 
-    return navigator.clipboard.writeText(text).then(function () {
+    return clip.writeText(text).then(function () {
       if (buttonEl) {
         buttonEl.textContent = '복사됨';
         buttonEl.classList.add('copied');
@@ -153,7 +233,7 @@
         if (!href) return;
 
         if (href.startsWith('#')) {
-          return; // 내부 앵커 이동
+          return;
         }
 
         e.preventDefault();
@@ -165,14 +245,12 @@
           return;
         }
 
-        // 상대경로 마크다운 링크 처리 (FR-9)
         var combined = baseDir ? (baseDir + '/' + href).replace(/\\/g, '/').replace(/\/+/g, '/') : href;
         if (combined.split('/').includes('..') || href.startsWith('/') || /^[a-zA-Z]:/.test(href)) {
           console.warn('ROOT_ESCAPE 링크 차단됨:', href);
           return;
         }
 
-        // 앱 내에서 탭으로 열기 (Shell App 오픈 디스패치)
         if (typeof window !== 'undefined') {
           var event = new CustomEvent('app:open_path', {
             bubbles: true,
@@ -255,6 +333,19 @@
                        (typeof root !== 'undefined' && root.marked) || null;
           var html = '';
           if (parser && typeof parser.parse === 'function') {
+            // 문법 강조를 포함하는 렌더러 설정
+            var customRenderer = {
+              code: function (args) {
+                var text = args.text || '';
+                var lang = args.lang || '';
+                var language = resolvePrismLanguage(lang);
+                var highlighted = highlightCode(text, language);
+                return '<pre><code class="language-' + (language || 'text') + '">' + highlighted + '</code></pre>\n';
+              }
+            };
+            if (parser.use) {
+              parser.use({ renderer: customRenderer });
+            }
             html = parser.parse(rawMd, { gfm: true, breaks: true });
           } else {
             html = '<pre>' + escapeHtml(rawMd) + '</pre>';
@@ -366,7 +457,7 @@
     }
   };
 
-  // 2. 텍스트/코드 뷰어
+  // 2. 텍스트/코드 뷰어 (FR-5, FR-6, FR-7)
   var codeView = {
     kind: 'code',
 
@@ -434,18 +525,21 @@
       function renderCodeView(content, filePath) {
         var lines = content.split(/\r\n|\r|\n/);
         var lineCount = lines.length;
+        var ext = getExtension(filePath);
+        var langKey = resolvePrismLanguage(ext);
 
         el.innerHTML = '';
 
         var viewer = el.ownerDocument.createElement('div');
         viewer.className = 'code-viewer-container';
 
-        // 툴바
+        // 툴바 (파일명, 줄수, 복사 버튼)
         var toolbar = el.ownerDocument.createElement('div');
         toolbar.className = 'code-viewer-toolbar';
 
         var infoSpan = el.ownerDocument.createElement('span');
-        infoSpan.textContent = getBaseName(filePath) + ' (' + lineCount + ' 줄)';
+        var langLabel = langKey ? ' [' + langKey + ']' : '';
+        infoSpan.textContent = getBaseName(filePath) + ' (' + lineCount + ' 줄)' + langLabel;
         toolbar.appendChild(infoSpan);
 
         var copyBtn = el.ownerDocument.createElement('button');
@@ -460,7 +554,7 @@
 
         viewer.appendChild(toolbar);
 
-        // 본문 컨테이너 (줄번호 + 코드)
+        // 본문 영역 (줄 번호 거터 + 코드 라인)
         var contentDiv = el.ownerDocument.createElement('div');
         contentDiv.className = 'code-viewer-content';
 
@@ -475,7 +569,9 @@
 
         var linesPre = el.ownerDocument.createElement('pre');
         linesPre.className = 'code-viewer-lines';
-        linesPre.textContent = content;
+        // 문법 강조 적용 (FR-5)
+        var highlightedHtml = highlightCode(content, langKey);
+        linesPre.innerHTML = highlightedHtml;
         contentDiv.appendChild(linesPre);
 
         viewer.appendChild(contentDiv);
@@ -573,7 +669,10 @@
   var views = {
     markdown: markdownView,
     code: codeView,
-    sanitizeHtml: sanitizeHtml
+    resolvePrismLanguage: resolvePrismLanguage,
+    highlightCode: highlightCode,
+    sanitizeHtml: sanitizeHtml,
+    copyToClipboard: copyToClipboard
   };
 
   if (typeof module === 'object' && module.exports) {

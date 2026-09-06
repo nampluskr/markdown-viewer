@@ -236,7 +236,7 @@
     },
     {
       "id": "MV-014",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P4",
       "title": "텍스트·코드 뷰어와 줄 번호",
@@ -248,11 +248,11 @@
       "deps": [
         "MV-007"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-015",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P4",
       "title": "크기 상한·바이너리·인코딩 거절",
@@ -264,11 +264,11 @@
       "deps": [
         "MV-014"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-016",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P4",
       "title": "문법 강조기 반입과 아홉 언어 적용",
@@ -281,11 +281,11 @@
         "MV-014",
         "MV-009"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-017",
-      "status": "todo",
+      "status": "done",
       "priority": "medium",
       "category": "P4",
       "title": "테마별 강조 스타일",
@@ -297,11 +297,11 @@
       "deps": [
         "MV-016"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-018",
-      "status": "todo",
+      "status": "done",
       "priority": "medium",
       "category": "P4",
       "title": "코드 복사 버튼",
@@ -313,11 +313,11 @@
       "deps": [
         "MV-016"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-019",
-      "status": "todo",
+      "status": "done",
       "priority": "medium",
       "category": "P4",
       "title": "오류 코드 매핑",
@@ -329,7 +329,7 @@
       "deps": [
         "MV-015"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-020",
