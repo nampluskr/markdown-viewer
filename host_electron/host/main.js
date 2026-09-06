@@ -1,6 +1,7 @@
 const electron = require("electron");
 const fs = require("fs");
 const path = require("path");
+const { pathToFileURL } = require("url");
 const { createDomainHandler } = require("./domain.js");
 
 const isElectron = typeof electron === "object" && electron !== null && "ipcMain" in electron;
@@ -383,6 +384,35 @@ function createWindow() {
 
   const entryHtml = path.join(__dirname, "..", "..", "shell", "index.html");
   windowRef.loadFile(entryHtml);
+
+  // 앱 창은 껍데기 진입 문서 밖으로 이동하지 않는다.
+  // 렌더러의 클릭 가로채기가 놓치는 경로(Ctrl+클릭 · 가운데 클릭 등)를 여기서 막는다 (FR-9).
+  windowRef.webContents.on("will-navigate", (event, targetUrl) => {
+    const entryUrl = pathToFileURL(entryHtml).href;
+    if (targetUrl !== entryUrl) {
+      event.preventDefault();
+      if (targetUrl.startsWith("http://") || targetUrl.startsWith("https://")) {
+        electron.shell.openExternal(targetUrl).catch(() => {});
+      }
+    }
+  });
+
+  // 새 창 요청은 열지 않는다. http/https만 기본 브라우저로 넘긴다 (FR-9).
+  windowRef.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("http://") || url.startsWith("https://")) {
+      electron.shell.openExternal(url).catch(() => {});
+    }
+    return { action: "deny" };
+  });
+
+  // NFR-1 측정용. 켜져 있을 때만 기동 시각을 찍고 종료한다 (tests/measure_startup.js).
+  if (process.env.MV_STARTUP_BENCH === "1") {
+    windowRef.webContents.once("did-finish-load", () => {
+      const elapsedMs = Date.now() - Number(process.env.MV_STARTUP_T0 || Date.now());
+      process.stdout.write("MV_STARTUP_MS=" + elapsedMs + "\n");
+      app.quit();
+    });
+  }
 
   windowRef.webContents.on("did-finish-load", () => {
     windowRef.webContents.insertCSS(

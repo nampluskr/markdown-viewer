@@ -154,7 +154,61 @@ assert.strictEqual(destroyCalled, false, 'View must NOT be destroyed on tab swit
 // 탭 1을 닫을 때만 destroy 호출 확인
 tabManager.closeTab(t1.id);
 assert.strictEqual(destroyCalled, true, 'View MUST be destroyed when tab is closed');
-console.log('MV-025: 보기 수명주기 및 탭 수명 동안 상태 유지 통과');
+console.log('MV-025: 보기 수명주기 및 탭 수명 동안 상태 유지 통과 (껍데기 계약)');
+
+// 2-1. 실제 보기 구현이 읽던 자리를 되돌리는지 본다.
+// 껍데기는 비활성 탭을 display:none으로 감추고, 그러면 스크롤 위치가 초기화된다.
+// 위 검사는 시험용 스텁 보기로 껍데기 쪽만 확인하므로 여기서 실물 두 보기를 직접 본다 (FR-11).
+function findScrollContainer(mockEl) {
+  // el > viewer > [toolbar, contentDiv]
+  const viewer = mockEl.children[0];
+  if (!viewer || !viewer.children) return null;
+  return viewer.children[1] || null;
+}
+
+async function checkScrollRestored(view, label) {
+  const container = createMockElement();
+  globalThis.bridge = {
+    call_domain: async () => ({ ok: true, value: { content: 'line1\nline2\nline3\nline4', size: 24, path: 'x' } })
+  };
+
+  const instance = view.createView(container, { id: 't', kind: view.kind, resource: { path: 'sample.py' } });
+  instance.mount(container);
+  await new Promise((resolve) => setImmediate(resolve));
+
+  const mounted = container._lastAppended;
+  const scrollBox = view.kind === 'markdown' ? mounted : findScrollContainer(mounted);
+  assert.ok(scrollBox, `${label}: scroll container must exist after render`);
+
+  // 사용자가 아래로 스크롤한 상태를 만든다
+  scrollBox.scrollTop = 220;
+  const scrollHandler = scrollBox._listeners['scroll'];
+  if (scrollHandler) scrollHandler();
+
+  // 다른 탭으로 갔다가 (deactivate) 껍데기가 감추면서 스크롤이 초기화되고,
+  instance.deactivate();
+  scrollBox.scrollTop = 0;
+
+  // 돌아왔을 때 (activate) 읽던 자리가 되돌아와야 한다
+  instance.activate();
+  assert.strictEqual(scrollBox.scrollTop, 220, `${label}: scroll position must be restored on activate`);
+
+  // 껍데기의 세션 상태 계약도 구현돼 있어야 한다
+  const saved = instance.saveState();
+  assert.strictEqual(saved.scrollTop, 220, `${label}: saveState must carry the scroll position`);
+  instance.restoreState({ scrollTop: 111, zoomLevel: 1.5 });
+  assert.strictEqual(instance.getState().scrollTop, 111, `${label}: restoreState must apply the scroll position`);
+  assert.strictEqual(instance.getState().zoomLevel, 1.5, `${label}: restoreState must apply the zoom level`);
+
+  instance.destroy();
+  delete globalThis.bridge;
+}
+
+(async () => {
+  await checkScrollRestored(views.code, 'code view');
+  await checkScrollRestored(views.markdown, 'markdown view');
+  console.log('FR-11: 실물 보기 둘 다 탭 전환 뒤 읽던 자리 복원 확인');
+})();
 
 // 3. MV-026: 읽기 전용 확인 — 해시 및 수정 시각 불변성 검증 (FR-12, 제약 7)
 const testDir = path.join(__dirname, 'temp_phase6');

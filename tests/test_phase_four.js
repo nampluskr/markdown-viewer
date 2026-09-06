@@ -34,9 +34,12 @@ for (const [lang, code] of Object.entries(codeSamples)) {
 }
 
 // 지원하지 않는 언어 / 알 수 없는 언어 원문 표시 확인
-const unknownCode = 'CUSTOM_SYNTAX $$$ foo === bar';
+const unknownCode = 'CUSTOM_SYNTAX $$$ foo === bar <script>x</script>';
 const unknownHighlighted = views.highlightCode(unknownCode, 'unknown_lang');
-assert.strictEqual(unknownHighlighted, views.sanitizeHtml(unknownCode), 'Unknown language should output plain escaped text');
+assert.ok(!unknownHighlighted.includes('<span class="token '), 'Unknown language must not be tokenized');
+assert.ok(!unknownHighlighted.includes('<script>'), 'Unknown language output must be escaped');
+assert.ok(unknownHighlighted.includes('&lt;script&gt;'), 'Unknown language output must keep the source as escaped text');
+assert.ok(unknownHighlighted.includes('CUSTOM_SYNTAX $$$ foo === bar'), 'Unknown language output must keep the source text');
 console.log('MV-016: 9개 언어 문법 강조 및 비지원 언어 원문 출력 통과');
 
 // 2. MV-014: 줄 번호 및 원문 줄 수 일치 검증 (FR-7)

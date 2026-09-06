@@ -101,16 +101,14 @@ function createDomainHandler({ resolveInsideRoot, isInsideRoot, getRootPath, fai
       const root = getRootPath();
       if (!root) return fail('NOT_FOUND', ERROR_MESSAGES.NOT_FOUND);
 
-      // 2. baseDir 기준 상대경로 해결 및 루트 경계 검사 (FR-8)
-      const candidate = baseDir ? path.resolve(root, baseDir, imgPath) : path.resolve(root, imgPath);
-      if (!isInsideRoot(candidate)) {
-        return fail('ROOT_ESCAPE', ERROR_MESSAGES.ROOT_ESCAPE);
-      }
+      // 2. baseDir 기준 상대경로를 루트 기준 상대경로로 합친 뒤,
+      //    문서 읽기와 같은 경계 검사(resolveInsideRoot)를 태운다.
+      //    자체 경로 계산은 심볼릭 링크·junction을 realpath로 풀지 않아 루트 밖을 읽을 수 있다.
+      const joined = baseDir ? path.join(baseDir, imgPath) : imgPath;
+      const resolvedImage = resolveInsideRoot(joined.replace(/\\/g, '/'));
+      if (!resolvedImage.ok) return resolvedImage;
 
-      // 3. 파일 존재 여부 확인
-      if (!fs.existsSync(candidate)) {
-        return fail('NOT_FOUND', ERROR_MESSAGES.NOT_FOUND);
-      }
+      const candidate = resolvedImage.value;
 
       let stat;
       try {

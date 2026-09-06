@@ -123,8 +123,21 @@
             return cut >= 0 ? fp.slice(cut + 1) : fp;
           })(p);
 
+          // 확장자에 따라 보기를 고른다. 지원하지 않는 확장자는 열지 않는다 (FR-2).
+          var ext = getExtension(title);
+          var kind = options.kind;
+          if (!kind) {
+            if (isMarkdownExtension(ext)) {
+              kind = 'markdown';
+            } else if (CODE_AND_TEXT_SET[ext]) {
+              kind = 'code';
+            } else {
+              return null;
+            }
+          }
+
           return tabManager.openTab({
-            kind: 'markdown',
+            kind: kind,
             resource: { path: p },
             title: title
           });

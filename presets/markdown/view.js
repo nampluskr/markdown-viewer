@@ -109,22 +109,60 @@
     }
   }
 
-  function sanitizeHtml(dirtyHtml) {
+  function getPurifier() {
     var purifier = (typeof window !== 'undefined' && window.DOMPurify) ||
                    (typeof root !== 'undefined' && root.DOMPurify) || null;
-    if (purifier && typeof purifier.sanitize === 'function') {
-      return purifier.sanitize(dirtyHtml, {
-        USE_PROFILES: { html: true },
-        FORBID_TAGS: ['script'],
-        FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur']
-      });
+    return (purifier && typeof purifier.sanitize === 'function') ? purifier : null;
+  }
+
+  // 정화기가 없으면 원본 HTML을 넣지 않는다. 정규식으로 흉내 내면 조용히 약한 상태가 된다 (D-6).
+  function sanitizeHtml(dirtyHtml) {
+    var purifier = getPurifier();
+    if (!purifier) {
+      return '<pre class="sanitizer-missing">' + escapeHtml(String(dirtyHtml)) + '</pre>';
     }
-    return dirtyHtml
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-      .replace(/on\w+\s*=\s*"[^"]*"/gi, '')
-      .replace(/on\w+\s*=\s*'[^']*'/gi, '')
-      .replace(/href\s*=\s*"javascript:[^"]*"/gi, 'href="#"')
-      .replace(/href\s*=\s*'javascript:[^']*'/gi, "href='#'");
+    return purifier.sanitize(String(dirtyHtml), {
+      USE_PROFILES: { html: true },
+      FORBID_TAGS: ['script'],
+      FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur']
+    });
+  }
+
+  // 렌더러 등록은 한 번만 한다. marked.use는 호출할 때마다 쌓인다.
+  var markedConfigured = false;
+
+  function getMarkedParser() {
+    var parser = (typeof window !== 'undefined' && window.marked) ||
+                 (typeof root !== 'undefined' && root.marked) || null;
+    if (!parser || typeof parser.parse !== 'function') return null;
+
+    if (!markedConfigured && typeof parser.use === 'function') {
+      parser.use({
+        renderer: {
+          code: function (args) {
+            var text = args.text || '';
+            var lang = args.lang || '';
+            var language = resolvePrismLanguage(lang);
+            var highlighted = highlightCode(text, language);
+            return '<pre><code class="language-' + (language || 'text') + '">' + highlighted + '</code></pre>\n';
+          }
+        }
+      });
+      markedConfigured = true;
+    }
+    return parser;
+  }
+
+  // 동결본(react-markdown + remark-gfm)과 같게 소프트 줄바꿈을 <br>로 바꾸지 않는다.
+  var MARKED_OPTIONS = { gfm: true, breaks: false };
+
+  // 마크다운 -> HTML. 화면에 넣기 전 단계이며, 정화는 sanitizeHtml이 따로 한다 (D-6).
+  function renderMarkdownToHtml(rawMd) {
+    var parser = getMarkedParser();
+    if (!parser) {
+      return '<pre>' + escapeHtml(String(rawMd)) + '</pre>';
+    }
+    return parser.parse(String(rawMd), MARKED_OPTIONS);
   }
 
   function copyToClipboard(text, buttonEl) {
@@ -134,10 +172,10 @@
     var clip = nav && nav.clipboard;
     if (!clip || typeof clip.writeText !== 'function') {
       if (buttonEl) {
-        buttonEl.textContent = '복사 실패';
+        buttonEl.textContent = 'Copy failed';
         buttonEl.classList.add('copy-failed');
         setTimeout(function () {
-          buttonEl.textContent = '복사';
+          buttonEl.textContent = 'Copy';
           buttonEl.classList.remove('copy-failed');
         }, 1500);
       }
@@ -146,19 +184,19 @@
 
     return clip.writeText(text).then(function () {
       if (buttonEl) {
-        buttonEl.textContent = '복사됨';
+        buttonEl.textContent = 'Copied';
         buttonEl.classList.add('copied');
         setTimeout(function () {
-          buttonEl.textContent = '복사';
+          buttonEl.textContent = 'Copy';
           buttonEl.classList.remove('copied');
         }, 1500);
       }
     }).catch(function () {
       if (buttonEl) {
-        buttonEl.textContent = '복사 실패';
+        buttonEl.textContent = 'Copy failed';
         buttonEl.classList.add('copy-failed');
         setTimeout(function () {
-          buttonEl.textContent = '복사';
+          buttonEl.textContent = 'Copy';
           buttonEl.classList.remove('copy-failed');
         }, 1500);
       }
@@ -179,8 +217,8 @@
       var btn = container.ownerDocument.createElement('button');
       btn.type = 'button';
       btn.className = 'code-copy-btn';
-      btn.textContent = '복사';
-      btn.setAttribute('aria-label', '코드 복사');
+      btn.textContent = 'Copy';
+      btn.setAttribute('aria-label', 'Copy code');
       btn.addEventListener('click', function () {
         var codeEl = pre.querySelector('code');
         var text = (codeEl ? codeEl.textContent : pre.textContent) || '';
@@ -210,17 +248,51 @@
           var errSpan = container.ownerDocument.createElement('span');
           errSpan.className = 'markdown-img-error';
           var code = (res && res.error && res.error.code) || 'NOT_FOUND';
-          errSpan.textContent = '[이미지 없음: ' + (img.alt || src) + ' (' + code + ')]';
+          errSpan.textContent = '[Image not found: ' + (img.alt || src) + ' (' + code + ')]';
           img.parentNode.replaceChild(errSpan, img);
         }
       }).catch(function () {
         if (!img.parentNode) return;
         var errSpan = container.ownerDocument.createElement('span');
         errSpan.className = 'markdown-img-error';
-        errSpan.textContent = '[이미지 로드 실패: ' + (img.alt || src) + ']';
+        errSpan.textContent = '[Image load failed: ' + (img.alt || src) + ']';
         img.parentNode.replaceChild(errSpan, img);
       });
     });
+  }
+
+  // 차단된 링크를 사용자가 알 수 있게 알린다. 콘솔 경고만으로는 화면에서 아무 일도 없어 보인다.
+  function showViewNotice(container, message) {
+    if (!container || !container.ownerDocument) return;
+    var doc = container.ownerDocument;
+    var existing = container.querySelector && container.querySelector('.view-notice');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
+    var notice = doc.createElement('div');
+    notice.className = 'view-notice';
+    notice.textContent = message;
+    container.appendChild(notice);
+
+    var timer = (typeof setTimeout === 'function') ? setTimeout : null;
+    if (timer) {
+      timer(function () {
+        if (notice.parentNode) notice.parentNode.removeChild(notice);
+      }, 3000);
+    }
+  }
+
+  // 링크 대상의 확장자로 어떤 보기로 열지 정한다. 프리셋이 가진 분류를 그대로 쓴다 (FR-2).
+  function resolveLinkTargetKind(targetPath) {
+    var presets = (typeof window !== 'undefined' && window.Presets) ||
+                  (typeof root !== 'undefined' && root.Presets) || null;
+    var preset = presets && presets.markdown;
+    var ext = getExtension(getBaseName(targetPath));
+
+    if (preset && typeof preset.isSupportedExtension === 'function') {
+      if (!preset.isSupportedExtension(ext)) return null;
+      return preset.isMarkdownExtension(ext) ? 'markdown' : 'code';
+    }
+    return ext === '.md' ? 'markdown' : null;
   }
 
   function attachLinkHandlers(container, baseDir) {
@@ -247,36 +319,36 @@
 
         var combined = baseDir ? (baseDir + '/' + href).replace(/\\/g, '/').replace(/\/+/g, '/') : href;
         if (combined.split('/').includes('..') || href.startsWith('/') || /^[a-zA-Z]:/.test(href)) {
-          console.warn('ROOT_ESCAPE 링크 차단됨:', href);
+          showViewNotice(container, 'Blocked (ROOT_ESCAPE): ' + href);
           return;
         }
 
-        openDocumentLink(combined);
-
-        if (typeof window !== 'undefined') {
-          var event = new CustomEvent('app:open_path', {
-            bubbles: true,
-            detail: { path: combined, title: getBaseName(combined) }
-          });
-          container.dispatchEvent(event);
+        var kind = resolveLinkTargetKind(combined);
+        if (!kind) {
+          showViewNotice(container, 'Unsupported target: ' + href);
+          return;
         }
+
+        openDocumentLink(combined, kind);
       });
     });
   }
 
-  function openDocumentLink(targetPath) {
+  function openDocumentLink(targetPath, kind) {
+    var viewKind = kind || 'markdown';
     var shell = (typeof window !== 'undefined' && window.__shell) || null;
     if (shell && shell.slots && typeof shell.slots.executeOpenRoute === 'function') {
       shell.slots.executeOpenRoute('open_document', shell.tabManager, {
         path: targetPath,
-        title: getBaseName(targetPath)
+        title: getBaseName(targetPath),
+        kind: viewKind
       });
       if (shell.renderEditor) shell.renderEditor();
       return;
     }
     if (shell && shell.tabManager) {
       shell.tabManager.openTab({
-        kind: 'markdown',
+        kind: viewKind,
         resource: { path: targetPath },
         title: getBaseName(targetPath)
       });
@@ -308,7 +380,7 @@
 
         var errMsg = el.ownerDocument.createElement('div');
         errMsg.className = 'view-error-message';
-        errMsg.textContent = message || '문서를 불러오지 못했습니다.';
+        errMsg.textContent = message || 'Could not load the document.';
         errBox.appendChild(errMsg);
 
         el.appendChild(errBox);
@@ -351,27 +423,7 @@
 
       function renderMarkdown(rawMd, filePath) {
         try {
-          var parser = (typeof window !== 'undefined' && window.marked) ||
-                       (typeof root !== 'undefined' && root.marked) || null;
-          var html = '';
-          if (parser && typeof parser.parse === 'function') {
-            // 문법 강조를 포함하는 렌더러 설정
-            var customRenderer = {
-              code: function (args) {
-                var text = args.text || '';
-                var lang = args.lang || '';
-                var language = resolvePrismLanguage(lang);
-                var highlighted = highlightCode(text, language);
-                return '<pre><code class="language-' + (language || 'text') + '">' + highlighted + '</code></pre>\n';
-              }
-            };
-            if (parser.use) {
-              parser.use({ renderer: customRenderer });
-            }
-            html = parser.parse(rawMd, { gfm: true, breaks: true });
-          } else {
-            html = '<pre>' + escapeHtml(rawMd) + '</pre>';
-          }
+          var html = renderMarkdownToHtml(rawMd);
 
           var cleanHtml = sanitizeHtml(html);
           el.innerHTML = '<div class="markdown-body">' + cleanHtml + '</div>';
@@ -384,7 +436,7 @@
             el.scrollTop = currentScrollTop;
           }
         } catch (err) {
-          renderError('RENDER_ERROR', '마크다운 렌더링 중 오류가 발생했습니다: ' + err.message);
+          renderError('RENDER_ERROR', 'Markdown rendering failed: ' + err.message);
         }
       }
 
@@ -392,13 +444,13 @@
         if (destroyed || !el) return;
         var filePath = tab && tab.resource && tab.resource.path;
         if (!filePath) {
-          renderError('NOT_FOUND', '파일 경로가 없습니다.');
+          renderError('NOT_FOUND', 'No file path was given.');
           return;
         }
 
         var bridge = getBridge();
         if (!bridge || !bridge.call_domain) {
-          renderError('READ_FAILED', '호스트 브릿지를 사용할 수 없습니다.');
+          renderError('READ_FAILED', 'Host bridge is unavailable.');
           return;
         }
 
@@ -474,6 +526,22 @@
             scrollTop: currentScrollTop,
             contentLoaded: Boolean(loadedContent)
           };
+        },
+
+        // 껍데기가 보관·복원하는 세션 상태 (shell/view_lifecycle.js의 saveState/restoreState)
+        saveState: function () {
+          return { zoomLevel: zoomLevel, scrollTop: currentScrollTop };
+        },
+
+        restoreState: function (state) {
+          if (!state || typeof state !== 'object') return;
+          if (typeof state.zoomLevel === 'number') {
+            zoomLevel = Math.min(2.5, Math.max(0.5, state.zoomLevel));
+            updateZoom();
+          }
+          if (typeof state.scrollTop === 'number') {
+            currentScrollTop = state.scrollTop;
+          }
         }
       };
     }
@@ -489,6 +557,7 @@
       var currentScrollTop = 0;
       var zoomLevel = 1.0;
       var loadedContent = null;
+      var scrollEl = null; // 실제로 스크롤되는 요소(.code-viewer-content)
 
       function renderError(code, message) {
         if (!el) return;
@@ -503,7 +572,7 @@
 
         var errMsg = el.ownerDocument.createElement('div');
         errMsg.className = 'view-error-message';
-        errMsg.textContent = message || '파일을 불러오지 못했습니다.';
+        errMsg.textContent = message || 'Could not load the file.';
         errBox.appendChild(errMsg);
 
         el.appendChild(errBox);
@@ -561,14 +630,14 @@
 
         var infoSpan = el.ownerDocument.createElement('span');
         var langLabel = langKey ? ' [' + langKey + ']' : '';
-        infoSpan.textContent = getBaseName(filePath) + ' (' + lineCount + ' 줄)' + langLabel;
+        infoSpan.textContent = getBaseName(filePath) + ' (' + lineCount + ' lines)' + langLabel;
         toolbar.appendChild(infoSpan);
 
         var copyBtn = el.ownerDocument.createElement('button');
         copyBtn.type = 'button';
         copyBtn.className = 'code-copy-btn';
         copyBtn.style.position = 'static';
-        copyBtn.textContent = '복사';
+        copyBtn.textContent = 'Copy';
         copyBtn.addEventListener('click', function () {
           copyToClipboard(content, copyBtn);
         });
@@ -599,6 +668,7 @@
         viewer.appendChild(contentDiv);
         el.appendChild(viewer);
 
+        scrollEl = contentDiv;
         if (currentScrollTop > 0) {
           contentDiv.scrollTop = currentScrollTop;
         }
@@ -612,13 +682,13 @@
         if (destroyed || !el) return;
         var filePath = tab && tab.resource && tab.resource.path;
         if (!filePath) {
-          renderError('NOT_FOUND', '파일 경로가 없습니다.');
+          renderError('NOT_FOUND', 'No file path was given.');
           return;
         }
 
         var bridge = getBridge();
         if (!bridge || !bridge.call_domain) {
-          renderError('READ_FAILED', '호스트 브릿지를 사용할 수 없습니다.');
+          renderError('READ_FAILED', 'Host bridge is unavailable.');
           return;
         }
 
@@ -655,11 +725,18 @@
         },
 
         activate: function () {
-          if (el) el.classList.add('active');
+          if (!el) return;
+          el.classList.add('active');
+          // 껍데기가 display:none으로 감추면 스크롤 위치가 초기화된다. 직접 되돌린다 (FR-11).
+          if (scrollEl && currentScrollTop > 0) {
+            scrollEl.scrollTop = currentScrollTop;
+          }
         },
 
         deactivate: function () {
-          if (el) el.classList.remove('active');
+          if (!el) return;
+          if (scrollEl) currentScrollTop = scrollEl.scrollTop;
+          el.classList.remove('active');
         },
 
         resize: function () {
@@ -683,6 +760,21 @@
             scrollTop: currentScrollTop,
             contentLoaded: Boolean(loadedContent)
           };
+        },
+
+        saveState: function () {
+          return { zoomLevel: zoomLevel, scrollTop: currentScrollTop };
+        },
+
+        restoreState: function (state) {
+          if (!state || typeof state !== 'object') return;
+          if (typeof state.zoomLevel === 'number') {
+            zoomLevel = Math.min(2.5, Math.max(0.5, state.zoomLevel));
+            updateZoom();
+          }
+          if (typeof state.scrollTop === 'number') {
+            currentScrollTop = state.scrollTop;
+          }
         }
       };
     }
@@ -691,6 +783,7 @@
   var views = {
     markdown: markdownView,
     code: codeView,
+    renderMarkdownToHtml: renderMarkdownToHtml,
     resolvePrismLanguage: resolvePrismLanguage,
     highlightCode: highlightCode,
     sanitizeHtml: sanitizeHtml,

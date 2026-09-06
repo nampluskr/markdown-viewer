@@ -16,32 +16,35 @@ assert.ok(vendorReadme.includes('3.2.4'), 'vendor/README.md must document dompur
 console.log('MV-009: 렌더러 반입 및 버전 고정 통과');
 
 // 2. MV-010: GFM 요소 렌더링 검증 (FR-3)
-const gfmSample = `
-# 제목 1
+const gfmSample = [
+  '# 제목 1',
+  '',
+  '이것은 문단입니다. **굵게** 및 *기울임*.',
+  '',
+  '> 이것은 인용문입니다.',
+  '',
+  '---',
+  '',
+  '| 항목 | 값 | 상태 |',
+  '| --- | --- | --- |',
+  '| 1번 | 알파 | 완료 |',
+  '| 2번 | 베타 | 진행중 |',
+  '',
+  '- [ ] 미완료 할 일',
+  '- [x] 완료된 할 일',
+  '',
+  '```python',
+  'def hello():',
+  '    print("world")',
+  '```',
+  '',
+  '인라인 `code` 및 [링크](https://example.com)입니다.',
+  ''
+].join('\n');
 
-이것은 문단입니다. **굵게** 및 *기울임*.
-
-> 이것은 인용문입니다.
-
----
-
-| 항목 | 값 | 상태 |
-| --- | --- | --- |
-| 1번 | 알파 | 완료 |
-| 2번 | 베타 | 진행중 |
-
-- [ ] 미완료 할 일
-- [x] 완료된 할 일
-
-\`\`\`python
-def hello():
-    print("world")
-\`\`\`
-
-인라인 \`code\` 및 [링크](https://example.com)입니다.
-`;
-
-const parsedHtml = marked.parse(gfmSample, { gfm: true, breaks: true });
+// 앱이 쓰는 것과 같은 옵션으로 파싱한다 (breaks 없음 — 동결본과 같은 줄바꿈 처리)
+const MARKED_OPTIONS = { gfm: true, breaks: false };
+const parsedHtml = marked.parse(gfmSample, MARKED_OPTIONS);
 
 assert.ok(parsedHtml.includes('<h1>제목 1</h1>'), 'Heading 1 rendered');
 assert.ok(parsedHtml.includes('<blockquote>'), 'Blockquote rendered');
@@ -53,27 +56,58 @@ assert.ok(parsedHtml.includes('<code>code</code>'), 'Inline code rendered');
 assert.ok(parsedHtml.includes('<a href="https://example.com">링크</a>'), 'Link rendered');
 console.log('MV-010: GFM 모든 요소 렌더링 통과');
 
+// 2-1. FR-3: 소프트 줄바꿈은 <br>이 되지 않는다 (동결본 react-markdown + remark-gfm과 같은 처리)
+const softBreakHtml = marked.parse('first line\nsecond line', MARKED_OPTIONS);
+assert.ok(!softBreakHtml.includes('<br>'), 'Soft line breaks must not become <br> (frozen baseline parity)');
+console.log('FR-3: 소프트 줄바꿈 처리가 동결본과 같음 확인');
+
 // 3. MV-012: 렌더 결과 정화 검증 (FR-12)
-const xssSample = `
-# XSS Test
+// 앱에서 실제로 도는 경로는 DOMPurify다. 정화기가 있을 때 그것을 부르는지,
+// 없을 때 안전한 쪽으로 닫히는지 둘 다 본다.
+const xssSample = [
+  '# XSS Test',
+  '',
+  '<script>alert("xss")</script>',
+  '',
+  '<img src="invalid.jpg" onerror="alert(1)">',
+  '',
+  '<a href="javascript:alert(2)">bad link</a>',
+  '',
+  '<div onclick="alert(3)">click</div>',
+  ''
+].join('\n');
 
-<script>alert("xss")</script>
+const rawXssHtml = marked.parse(xssSample, MARKED_OPTIONS);
 
-<img src="invalid.jpg" onerror="alert('hack')">
+// 3-1. 정화기가 없으면 살아 있는 마크업을 화면에 넣지 않는다 (fail closed)
+const closedResult = views.sanitizeHtml(rawXssHtml);
+assert.ok(closedResult.includes('sanitizer-missing'), 'No purifier: output must be flagged as unsanitized text');
+assert.ok(!closedResult.includes('<script>'), 'No purifier: raw script markup must not survive');
+assert.ok(closedResult.includes('&lt;script&gt;'), 'No purifier: markup must be escaped, not silently stripped');
+assert.ok(!/<a\s/i.test(closedResult), 'No purifier: no live anchor markup may be emitted');
 
-<a href="javascript:alert('link-hack')">악성 링크</a>
+// 3-2. 정화기가 있으면 그 정화기를 부르고, 금지 목록을 함께 넘긴다
+let capturedConfig = null;
+globalThis.DOMPurify = {
+  sanitize: function (html, config) {
+    capturedConfig = config;
+    return String(html)
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/ on[a-z]+="[^"]*"/gi, '')
+      .replace(/href="javascript:[^"]*"/gi, 'href="about:blank"');
+  }
+};
+const purifiedResult = views.sanitizeHtml(rawXssHtml);
+delete globalThis.DOMPurify;
 
-<div onclick="alert('click')">클릭</div>
-`;
-
-const rawXssHtml = marked.parse(xssSample, { gfm: true, breaks: true });
-const sanitizedHtml = views.sanitizeHtml(rawXssHtml);
-
-assert.ok(!sanitizedHtml.includes('<script>'), '<script> tag must be removed');
-assert.ok(!sanitizedHtml.includes('onerror='), 'onerror attribute must be removed');
-assert.ok(!sanitizedHtml.includes('onclick='), 'onclick attribute must be removed');
-assert.ok(!sanitizedHtml.includes('href="javascript:'), 'javascript: link must be blocked');
-console.log('MV-012: XSS 살균/정화 통과');
+assert.ok(capturedConfig, 'Purifier must actually be called when present');
+assert.ok(capturedConfig.FORBID_TAGS.indexOf('script') >= 0, 'script must be forbidden');
+assert.ok(capturedConfig.FORBID_ATTR.indexOf('onerror') >= 0, 'onerror must be forbidden');
+assert.ok(!purifiedResult.includes('<script>'), '<script> tag must be removed');
+assert.ok(!purifiedResult.includes('onerror='), 'onerror attribute must be removed');
+assert.ok(!purifiedResult.includes('onclick='), 'onclick attribute must be removed');
+assert.ok(!purifiedResult.includes('href="javascript:'), 'javascript: link must be blocked');
+console.log('MV-012: XSS 살균/정화 통과 (정화기 있을 때·없을 때 양쪽)');
 
 // 4. MV-011: 읽기 영역 스타일 및 세 테마 연동 (FR-4, NFR-4)
 const cssContent = fs.readFileSync(path.join(__dirname, '..', 'presets', 'markdown', 'markdown.css'), 'utf8');
@@ -85,6 +119,7 @@ assert.strictEqual(colorMatches, null, 'Direct color literals in markdown.css st
 
 // 토큰 파일 확인 및 대비율 계산
 const tokensContent = fs.readFileSync(path.join(__dirname, '..', 'shared', 'design', 'tokens.css'), 'utf8');
+assert.ok(tokensContent.length > 0, 'tokens.css must be readable');
 
 function hexToRgb(hex) {
   const clean = hex.replace('#', '');

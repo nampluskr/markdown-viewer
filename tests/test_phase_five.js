@@ -52,6 +52,39 @@ for (const ext of imageFormats) {
   const rAbs = await handleBridge('call_domain', 'read_image', 'C:/Windows/test.png', 'sub');
   assert.strictEqual(rAbs.ok, false);
   assert.strictEqual(rAbs.error.code, 'ROOT_ESCAPE', 'Absolute image path must return ROOT_ESCAPE');
+  // 심볼릭 링크·junction으로 루트를 빠져나가는 경로도 막혀야 한다 (오류 계약 ROOT_ESCAPE).
+  // 문서 읽기는 realpath까지 확인하는데 이미지 읽기가 자체 경로 계산을 쓰면 여기서 뚫린다.
+  const outsideDir = path.join(__dirname, 'temp_phase5_outside');
+  if (!fs.existsSync(outsideDir)) fs.mkdirSync(outsideDir, { recursive: true });
+  fs.writeFileSync(path.join(outsideDir, 'secret.png'), dummyBytes);
+
+  const linkPath = path.join(testDir, 'linked');
+  let linkCreated = false;
+  try {
+    fs.symlinkSync(outsideDir, linkPath, 'junction');
+    linkCreated = true;
+  } catch (err) {
+    console.log('심볼릭 링크 생성 불가(권한) — 링크 이탈 검사 건너뜀:', err.code);
+  }
+
+  if (linkCreated) {
+    const rLinkImg = await handleBridge('call_domain', 'read_image', 'linked/secret.png', '');
+    assert.strictEqual(rLinkImg.ok, false, 'Image behind a junction must not be readable');
+    assert.strictEqual(rLinkImg.error.code, 'ROOT_ESCAPE', 'Junction escape must return ROOT_ESCAPE');
+
+    const rLinkImgBase = await handleBridge('call_domain', 'read_image', 'secret.png', 'linked');
+    assert.strictEqual(rLinkImgBase.ok, false, 'Junction escape via baseDir must be blocked too');
+    assert.strictEqual(rLinkImgBase.error.code, 'ROOT_ESCAPE', 'Junction escape via baseDir must return ROOT_ESCAPE');
+
+    const rLinkDoc = await handleBridge('call_domain', 'read_document', 'linked/secret.png');
+    assert.strictEqual(rLinkDoc.ok, false, 'Document behind a junction must not be readable');
+    assert.strictEqual(rLinkDoc.error.code, 'ROOT_ESCAPE', 'Junction escape must return ROOT_ESCAPE');
+
+    fs.unlinkSync(linkPath);
+    console.log('링크(junction)를 통한 루트 이탈 이미지·문서 읽기 차단 통과');
+  }
+  fs.rmSync(outsideDir, { recursive: true, force: true });
+
   console.log('MV-021: 루트 밖 이미지 참조 ROOT_ESCAPE 거부 통과');
 
   // 3. MV-022: 상대경로 문서 링크 열기 및 중복 정책 (FR-9)
@@ -78,6 +111,21 @@ for (const ext of imageFormats) {
   assert.strictEqual(openResult3.isNew, false, 'Reopening existing document should not be new');
   assert.strictEqual(tabManager.getAllTabs().length, 2, 'Tab count must remain 2');
   assert.strictEqual(tabManager.getActiveTab().id, openResult1.tab.id, 'Active tab must be doc1');
+  // 링크 대상의 확장자에 따라 보기가 갈린다. 코드 파일 링크를 마크다운으로 렌더링하지 않는다 (FR-2).
+  const openCode = slots.executeOpenRoute('open_document', tabManager, { path: 'sub/script.py' });
+  assert.ok(openCode && openCode.tab, 'Code file link should open a tab');
+  assert.strictEqual(openCode.tab.kind, 'code', 'A .py link must open in the code view, not markdown');
+
+  const openMd = slots.executeOpenRoute('open_document', tabManager, { path: 'sub/nested.md' });
+  assert.strictEqual(openMd.tab.kind, 'markdown', 'A .md link must open in the markdown view');
+
+  // 지원하지 않는 확장자는 열지 않는다
+  const tabCountBefore = tabManager.getAllTabs().length;
+  const openUnsupported = slots.executeOpenRoute('open_document', tabManager, { path: 'sub/archive.zip' });
+  assert.strictEqual(openUnsupported, null, 'Unsupported extension must not open a tab');
+  assert.strictEqual(tabManager.getAllTabs().length, tabCountBefore, 'Tab count must not change');
+  console.log('FR-2/FR-9: 링크 대상 확장자별 보기 분기 및 미지원 확장자 차단 통과');
+
   console.log('MV-022: 인앱 문서 링크 탭 열기 및 기존 탭 재활성화 통과');
 
   // 4. MV-023: 외부 URL 및 루트 밖 링크 처리 (FR-9)
