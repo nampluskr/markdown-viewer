@@ -1,0 +1,497 @@
+{
+  "$schema_version": "1",
+  "meta": {
+    "updated": "2026-09-07",
+    "context_doc": "PLAN.md",
+    "note": "markdown-viewer v0.1"
+  },
+  "enums": {
+    "status": [
+      "todo",
+      "in_progress",
+      "blocked",
+      "done"
+    ],
+    "priority": [
+      "high",
+      "medium",
+      "low"
+    ],
+    "category": [
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6",
+      "P7"
+    ]
+  },
+  "tasks": [
+    {
+      "id": "MV-001",
+      "status": "todo",
+      "priority": "high",
+      "category": "P1",
+      "title": "템플릿 반입과 Electron 갈래만 남기기",
+      "summary": "shell · shared/design · presets · host_electron이 템플릿 원본과 같은 내용으로 있고, host_pywebview 관련 파일이 0건이다",
+      "where": "루트",
+      "doc": "제약 2",
+      "note": "껍데기는 복사만 하고 고치지 않는다 (D-2, D-3)",
+      "parent": null,
+      "deps": [],
+      "done_at": null
+    },
+    {
+      "id": "MV-002",
+      "status": "todo",
+      "priority": "high",
+      "category": "P1",
+      "title": "앱 프리셋 자리 만들기",
+      "summary": "presets/markdown이 활성 프리셋으로 지정돼 앱이 뜨고, 템플릿의 presets/file · presets/folder와 참조 구현이 저장소에 0건이다",
+      "where": "presets/",
+      "doc": "FR-2",
+      "note": "확장자 지식은 이 폴더 안에만 둔다 (D-4)",
+      "parent": null,
+      "deps": [
+        "MV-001"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-003",
+      "status": "todo",
+      "priority": "high",
+      "category": "P1",
+      "title": "빌드 없는 로드 경로와 vendor 자리",
+      "summary": "저장소에 빌드 산출물을 만드는 단계가 0건이고, vendor/ 아래 소재가 빌드 없이 그대로 로드된다",
+      "where": "vendor/",
+      "doc": "NFR-3",
+      "note": "번들러·트랜스파일러를 넣지 않는다 (D-5, 제약 5)",
+      "parent": null,
+      "deps": [
+        "MV-001"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-004",
+      "status": "todo",
+      "priority": "medium",
+      "category": "P1",
+      "title": "실행 안내 문서",
+      "summary": "저장소를 새로 받은 상태에서 안내 문서의 명령만으로 앱이 창으로 뜨고 루트 폴더를 열어 트리가 보인다",
+      "where": "README.md · host_electron/README.md",
+      "doc": "제약 2",
+      "note": "사용법 본문은 버전 마감 때 갱신한다",
+      "parent": null,
+      "deps": [
+        "MV-001"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-005",
+      "status": "todo",
+      "priority": "high",
+      "category": "P2",
+      "title": "지원 확장자 목록과 트리 항목 거르기",
+      "summary": "SPEC FR-1 표의 확장자만 트리에 보이고 이미지와 그 밖의 확장자가 0건이며, 폴더는 항상 보인다",
+      "where": "presets/markdown/",
+      "doc": "FR-1",
+      "note": "껍데기 코드에 확장자 문자열이 나타나지 않아야 한다",
+      "parent": null,
+      "deps": [
+        "MV-002"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-006",
+      "status": "todo",
+      "priority": "medium",
+      "category": "P2",
+      "title": "대소문자를 구분하지 않는 확장자 판정",
+      "summary": "README.MD처럼 대문자 확장자를 가진 파일이 트리에 표시되고 탭으로 열린다",
+      "where": "presets/markdown/",
+      "doc": "FR-1",
+      "note": "Windows 파일명 규칙에 맞춘다",
+      "parent": null,
+      "deps": [
+        "MV-005"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-007",
+      "status": "todo",
+      "priority": "high",
+      "category": "P2",
+      "title": "행 선택 매핑 — 확장자로 보기 종류 나누기",
+      "summary": ".md는 마크다운 보기로, 그 밖의 지원 확장자는 텍스트·코드 보기로 열리고, 폴더 행에서는 탭 수가 늘지 않는다",
+      "where": "presets/markdown/",
+      "doc": "FR-2",
+      "note": "보기 종류 결정은 프리셋 안에서만 한다 (D-4)",
+      "parent": null,
+      "deps": [
+        "MV-005"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-008",
+      "status": "todo",
+      "priority": "medium",
+      "category": "P2",
+      "title": "트리 탐색 중 미리 읽기 없음 확인",
+      "summary": "폴더를 열거나 트리를 펼치는 동안 문서·이미지 읽기 호출이 0건이다",
+      "where": "presets/markdown/ · host_electron/",
+      "doc": "NFR-2",
+      "note": "썸네일과 미리 읽기를 만들지 않는다",
+      "parent": null,
+      "deps": [
+        "MV-007"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-009",
+      "status": "todo",
+      "priority": "high",
+      "category": "P3",
+      "title": "마크다운 렌더러 반입과 버전 고정",
+      "summary": "빌드 없이 로드되는 렌더러 배포본이 vendor/ 아래 있고 버전이 문서에 적힌 값과 같으며, 실행 시점에 네트워크 요청이 0건이다",
+      "where": "vendor/",
+      "doc": "NFR-3",
+      "note": "CDN 로드와 번들러 도입을 하지 않는다 (D-5)",
+      "parent": null,
+      "deps": [
+        "MV-003"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-010",
+      "status": "todo",
+      "priority": "high",
+      "category": "P3",
+      "title": "GFM 요소 렌더링",
+      "summary": "표·체크박스 목록·인용문·코드 펜스·수평선·인라인 코드·링크를 담은 시험 문서의 모든 요소가 해당 HTML 요소로 나타난다",
+      "where": "presets/markdown/",
+      "doc": "FR-3",
+      "note": "렌더 실패 시 오류 상태를 보이고 앱은 계속 돈다",
+      "parent": null,
+      "deps": [
+        "MV-009"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-011",
+      "status": "todo",
+      "priority": "high",
+      "category": "P3",
+      "title": "읽기 영역 스타일과 세 테마 연동",
+      "summary": "세 테마에서 읽기 영역의 배경·글자가 함께 바뀌고, 토큰을 거치지 않고 색이 직접 적힌 곳이 0건이며 본문 대비가 4.5:1 이상이다",
+      "where": "presets/markdown/",
+      "doc": "FR-4",
+      "note": "디자인 토큰만 쓰고 shared/design은 고치지 않는다 (NFR-4)",
+      "parent": null,
+      "deps": [
+        "MV-010"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-012",
+      "status": "todo",
+      "priority": "high",
+      "category": "P3",
+      "title": "렌더 결과 정화",
+      "summary": "script 태그·이벤트 속성·javascript: 링크를 담은 시험 문서에서 셋 다 실행되지 않고 제거된 상태로 표시된다",
+      "where": "presets/markdown/",
+      "doc": "FR-12",
+      "note": "삽입 전에 정화한다 (D-6)",
+      "parent": null,
+      "deps": [
+        "MV-010"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-013",
+      "status": "todo",
+      "priority": "medium",
+      "category": "P3",
+      "title": "오프라인 동작 판정",
+      "summary": "네트워크를 끊은 상태에서 마크다운 렌더링과 읽기 스타일 판정이 전건 통과한다",
+      "where": "tests/",
+      "doc": "NFR-5",
+      "note": "외부 URL을 브라우저로 넘기는 것만 예외다",
+      "parent": null,
+      "deps": [
+        "MV-011"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-014",
+      "status": "todo",
+      "priority": "high",
+      "category": "P4",
+      "title": "텍스트·코드 뷰어와 줄 번호",
+      "summary": ".md가 아닌 지원 파일이 읽기 전용 뷰어로 열리고 줄 번호가 원문 줄 수와 같다",
+      "where": "presets/markdown/",
+      "doc": "FR-7",
+      "note": "파일 읽기는 브릿지 도메인 호출을 거친다 (D-6)",
+      "parent": null,
+      "deps": [
+        "MV-007"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-015",
+      "status": "todo",
+      "priority": "high",
+      "category": "P4",
+      "title": "크기 상한·바이너리·인코딩 거절",
+      "summary": "2MB 초과 파일 · 널 바이트를 담은 파일 · UTF-16 파일이 서로 구분되는 사유로 거절되고, 세 경우 모두 앱이 멈추지 않는다",
+      "where": "presets/markdown/ · host_electron/",
+      "doc": "FR-7",
+      "note": "상한 2MB · UTF-8(BOM 포함)만 읽는다 (D-8)",
+      "parent": null,
+      "deps": [
+        "MV-014"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-016",
+      "status": "todo",
+      "priority": "high",
+      "category": "P4",
+      "title": "문법 강조기 반입과 아홉 언어 적용",
+      "summary": "Python·C++·TypeScript·JavaScript·JSON·PowerShell·YAML·TOML·Bash 각각에서 토큰 색이 둘 이상 나타나고, 언어를 알 수 없는 코드는 원문 그대로 보인다",
+      "where": "vendor/ · presets/markdown/",
+      "doc": "FR-5",
+      "note": "코드 블록과 코드 뷰어에 같은 강조기를 쓴다",
+      "parent": null,
+      "deps": [
+        "MV-014",
+        "MV-009"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-017",
+      "status": "todo",
+      "priority": "medium",
+      "category": "P4",
+      "title": "테마별 강조 스타일",
+      "summary": "밝은 테마에서 GitHub Light 계열, 어두운 테마에서 GitHub Dark 계열 강조가 적용되고 테마 전환에 따라 함께 바뀐다",
+      "where": "presets/markdown/",
+      "doc": "FR-4",
+      "note": "강조 색도 테마 값으로 정한다",
+      "parent": null,
+      "deps": [
+        "MV-016"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-018",
+      "status": "todo",
+      "priority": "medium",
+      "category": "P4",
+      "title": "코드 복사 버튼",
+      "summary": "코드 블록과 코드 뷰어의 버튼이 원문과 같은 내용을 줄바꿈 포함해 클립보드에 넣고, 접근이 거부되면 실패가 표시된다",
+      "where": "presets/markdown/",
+      "doc": "FR-6",
+      "note": "성공과 실패를 모두 사용자가 알 수 있어야 한다",
+      "parent": null,
+      "deps": [
+        "MV-016"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-019",
+      "status": "todo",
+      "priority": "medium",
+      "category": "P4",
+      "title": "오류 코드 매핑",
+      "summary": "읽기 실패·경계 이탈·지원하지 않는 대상이 오류 계약의 여섯 코드로 돌아오고 화면에 알림으로 표시된다",
+      "where": "host_electron/ · presets/markdown/",
+      "doc": "NFR-6",
+      "note": "껍데기의 오류 계약을 그대로 따른다",
+      "parent": null,
+      "deps": [
+        "MV-015"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-020",
+      "status": "todo",
+      "priority": "high",
+      "category": "P5",
+      "title": "상대경로 이미지 표시",
+      "summary": "png·jpg·jpeg·gif·webp·svg를 상대경로로 참조하는 시험 문서에서 여섯 개가 모두 문서와 함께 보인다",
+      "where": "presets/markdown/",
+      "doc": "FR-8",
+      "note": "이미지 읽기도 브릿지를 거친다 (D-6)",
+      "parent": null,
+      "deps": [
+        "MV-012"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-021",
+      "status": "todo",
+      "priority": "high",
+      "category": "P5",
+      "title": "이미지 실패와 루트 밖 참조 처리",
+      "summary": "없는 파일과 루트 밖(.. 이탈·절대경로) 참조가 대체 텍스트와 오류 상태로 나타나고 문서의 나머지는 그대로 보인다",
+      "where": "presets/markdown/",
+      "doc": "FR-8",
+      "note": "루트 밖은 ROOT_ESCAPE로 거부된다",
+      "parent": null,
+      "deps": [
+        "MV-020"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-022",
+      "status": "todo",
+      "priority": "high",
+      "category": "P5",
+      "title": "상대경로 문서 링크를 앱 안에서 열기",
+      "summary": "열려 있지 않은 문서로의 링크는 새 탭을 열고, 이미 열린 문서로의 링크는 탭 수를 늘리지 않고 그 탭을 활성화한다",
+      "where": "presets/markdown/",
+      "doc": "FR-9",
+      "note": "여는 경로 자리를 쓴다. 중복 판정은 껍데기가 한다",
+      "parent": null,
+      "deps": [
+        "MV-012"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-023",
+      "status": "todo",
+      "priority": "medium",
+      "category": "P5",
+      "title": "외부 URL과 루트 밖 링크 처리",
+      "summary": "http·https URL이 앱 안에서 열리지 않고 기본 브라우저로 넘어가며, 루트 밖을 가리키는 상대경로 링크는 거부되고 앱이 계속 돈다",
+      "where": "presets/markdown/ · host_electron/",
+      "doc": "FR-9",
+      "note": "앱 창이 외부 페이지로 이동하지 않아야 한다",
+      "parent": null,
+      "deps": [
+        "MV-022"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-024",
+      "status": "todo",
+      "priority": "high",
+      "category": "P6",
+      "title": "읽기 영역 글꼴 크기 조절",
+      "summary": "Ctrl +/=, Ctrl -, Ctrl 휠, Ctrl 0 네 조작이 읽기 영역에만 적용되고 50%~250% 범위를 벗어나지 않으며, 탐색기·탭·메뉴 줄·상태 표시줄의 글꼴 크기는 바뀌지 않는다",
+      "where": "presets/markdown/",
+      "doc": "FR-10",
+      "note": "껍데기 단축키와 충돌하지 않게 확인한다",
+      "parent": null,
+      "deps": [
+        "MV-011"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-025",
+      "status": "todo",
+      "priority": "high",
+      "category": "P6",
+      "title": "보기 수명주기와 읽던 자리 유지",
+      "summary": "탭을 전환했다 돌아오거나 반대쪽 조각으로 옮겨도 스크롤 위치와 글꼴 크기가 유지되고 문서를 다시 읽지 않으며, 탭을 닫을 때만 보기가 폐기된다",
+      "where": "presets/markdown/",
+      "doc": "FR-11",
+      "note": "mount·activate·deactivate·resize·destroy를 모두 구현한다",
+      "parent": null,
+      "deps": [
+        "MV-024"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-026",
+      "status": "todo",
+      "priority": "high",
+      "category": "P6",
+      "title": "읽기 전용 확인",
+      "summary": "앱을 켜고 문서를 여닫고 끈 뒤 루트 안 모든 파일의 내용 해시와 수정 시각이 실행 전과 같다",
+      "where": "tests/",
+      "doc": "FR-12",
+      "note": "쓰기·삭제·이름 변경 호출이 저장소에 0건이어야 한다 (제약 7)",
+      "parent": null,
+      "deps": [
+        "MV-025"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-027",
+      "status": "todo",
+      "priority": "high",
+      "category": "P7",
+      "title": "동결본 회귀 대조",
+      "summary": "동결본이 열던 확장자와 렌더링 요소를 같은 시험 문서로 대조해, 이 앱에서 열리지 않거나 다르게 보이는 항목이 0건이다",
+      "where": "tests/",
+      "doc": "FR-1",
+      "note": "기준은 _archive\\260813_markdown_browser\\ v0.2다",
+      "parent": null,
+      "deps": [
+        "MV-026",
+        "MV-023",
+        "MV-019"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-028",
+      "status": "todo",
+      "priority": "medium",
+      "category": "P7",
+      "title": "성능 측정",
+      "summary": "실행부터 탐색기 표시까지와 1MB 마크다운 렌더링까지를 다섯 번 측정한 중앙값이 각각 3초·1초 이내다",
+      "where": "tests/",
+      "doc": "NFR-1",
+      "note": "로컬 SSD 기준. 측정값을 PROGRESS.md에 남긴다",
+      "parent": null,
+      "deps": [
+        "MV-027"
+      ],
+      "done_at": null
+    },
+    {
+      "id": "MV-029",
+      "status": "todo",
+      "priority": "medium",
+      "category": "P7",
+      "title": "문서 규약 검사와 버전 마감",
+      "summary": "DOC-SCHEMA 9절의 초기화 검사 목록과 backlog validate가 전건 통과하고, 모든 FR과 NFR의 판정 결과와 README의 사용법 갱신이 끝난다",
+      "where": "docs/current/ · README.md",
+      "doc": "NFR-4",
+      "note": "이 항목이 마지막이다",
+      "parent": null,
+      "deps": [
+        "MV-028"
+      ],
+      "done_at": null
+    }
+  ]
+}

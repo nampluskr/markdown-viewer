@@ -1,0 +1,32 @@
+# --- Node (host_electron) ---
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- 빌드 산출물 ---
+dist/
+build/
+.next/
+out/
+coverage/
+.nyc_output/
+
+# --- 환경 ---
+.env
+.env.*
+!.env.example
+
+# --- 편집기 · 운영체제 ---
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# --- 작업 산출물 ---
+*.log
+tmp/
+
+# --- 실행으로 생기는 상태 ---
+host_electron/settings.json
