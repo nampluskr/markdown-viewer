@@ -1,0 +1,802 @@
+/* shell/shell.css — 껍데기 레이아웃 및 5개 구역 스타일 */
+
+/* 파일 타입 아이콘 테마가 쓰는 글꼴 (FR-30, v0.1 structure.css 104~115행) */
+@font-face {
+  font-family: "seti";
+  src: url("../shared/design/icons/seti/seti.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "codicon";
+  src: url("../shared/design/icons/seti/codicon.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font: var(--font-size)/var(--line-height) var(--font-ui);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button {
+  color: inherit;
+  font: inherit;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* 껍데기 최상위 그리드: 메뉴줄(30px) - 본체(1fr) - 상태표시줄(30px) */
+.shell-root {
+  display: grid;
+  grid-template-rows: var(--menu-height) minmax(0, 1fr) var(--status-height);
+  height: 100%;
+  width: 100%;
+}
+
+.shell-root.status-hidden {
+  grid-template-rows: var(--menu-height) minmax(0, 1fr) 0;
+}
+
+.shell-root.zen {
+  grid-template-rows: 0 minmax(0, 1fr) 0;
+}
+
+/* 1. 메뉴 줄 (구역 1) */
+.menu-bar {
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  height: var(--menu-height);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  min-width: 0;
+  z-index: 10;
+}
+
+.menu-slot {
+  position: relative;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.menu-button, .icon-btn, .window-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--menu-height);
+  min-width: var(--menu-height);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius);
+  color: var(--color-text);
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.menu-button:hover, .icon-btn:hover, .window-btn:hover, .window-btn.active {
+  background: var(--color-hover);
+}
+
+.drag-region {
+  flex: 1;
+  height: 100%;
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.window-controls {
+  display: flex;
+  height: 100%;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+/* 메뉴바 우측 창 제어 아이콘과 탐색기 머리글 아이콘은 30px 최소폭을 풀고
+   좌우 여백만으로 간격을 만든다 (v0.1 structure.css 40행) */
+.window-btn,
+.sidebar-actions .icon-btn {
+  min-width: 0;
+  padding: 0 var(--space-1);
+}
+
+/* flex가 아니면 inline-flex 버튼 사이에 공백 문자가 끼어 간격이 벌어진다
+   (v0.1 structure.css 83행) */
+.sidebar-actions {
+  display: flex;
+}
+
+/* 메뉴 팝오버 (FR-22, TE-036) */
+.menu-popover {
+  position: absolute;
+  top: calc(100% - 1px);
+  left: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  /* 그림자 색도 토큰을 거친다 (FR-28). 값은 v0.1과 같다 (structure.css 46행) */
+  box-shadow: 0 4px 16px var(--color-bg);
+  min-width: 190px;
+  padding: var(--space-1) 0;
+  display: none;
+  z-index: 100;
+}
+
+.menu-popover.open {
+  display: block;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 24px;
+  padding: 0 var(--space-3);
+  font-size: 11px;
+  color: var(--color-text);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.menu-item:hover {
+  background: var(--color-hover);
+}
+
+.menu-item.active {
+  font-weight: 600;
+}
+
+.menu-item-check {
+  display: inline-block;
+  font-size: 11px;
+  width: 14px;
+  margin-right: var(--space-1);
+}
+
+.menu-item-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-item-shortcut {
+  color: var(--color-muted);
+  font-size: 10px;
+  margin-left: var(--space-3);
+}
+
+.menu-item-disabled {
+  color: var(--color-muted);
+  cursor: default;
+}
+
+.menu-item-disabled:hover {
+  background: transparent;
+}
+
+.menu-divider {
+  border-top: 1px solid var(--color-divider);
+  margin: 4px 0;
+}
+
+.menu-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  padding: 0 var(--space-3);
+  height: 20px;
+}
+
+.menu-section-action {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-muted);
+  border-radius: var(--radius);
+}
+
+.menu-section-action:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+/* 본체 구역 (세로 띠 + 탐색기 + 분할 손잡이 + 보기 영역) */
+.shell-body {
+  grid-row: 2;
+  display: flex;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+/* 2. 세로 띠 (구역 2) */
+/* 오른쪽 구분선을 border가 아니라 겹쳐 그리는 선으로 둔다.
+   border로 두면 내용 영역이 29px가 되어 30px인 버튼이 x=-0.5px에 놓인다.
+   그러면 (1) 버튼 배경이 구분선을 덮어 선이 잘리고
+        (2) 아이콘이 반픽셀 좌표에 앉아 흐려진다(tokens.css의 아이콘 선명도 규칙).
+   선을 위에 얹으면 내용 영역이 30px 그대로라 버튼이 x=0에 정확히 앉는다. */
+.activity-rail {
+  width: var(--rail-width);
+  height: 100%;
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 5;
+}
+
+.activity-rail::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: 100%;
+  background: var(--color-border);
+  pointer-events: none;
+}
+
+.rail-top, .rail-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.rail-btn {
+  width: var(--rail-width);
+  height: var(--rail-width);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-muted);
+}
+
+/* 켜짐은 글자색으로만 나타낸다. 배경을 상시로 깔면 세로띠와 다른 색 상자가
+   아이콘 둘레에 남고 오른쪽 구분선까지 끊어 보인다 (v0.1은 hover에만 배경을 준다) */
+.rail-btn:hover {
+  color: var(--color-text);
+  background: var(--color-hover);
+}
+
+.rail-btn.active {
+  color: var(--color-text);
+}
+
+/* 상태표시줄 토글 아이콘: 탐색기 아이콘(icon-sidebar)을 반시계 방향 90도 회전하여 하단 바 형태 구현 */
+.statusbar-toggle .icon {
+  transform: rotate(-90deg);
+}
+
+/* 3. 탐색기 (구역 3) */
+.sidebar {
+  width: var(--sidebar-width);
+  min-width: 140px;
+  height: 100%;
+  background: var(--color-surface);
+  border-right: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  display: none;
+}
+
+.sidebar.collapsed + .splitter {
+  display: none;
+}
+
+.sidebar-header {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  color: var(--color-muted);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow: hidden;
+  height: calc(100% - 30px);
+}
+
+/* 트리 영역 (FR-16, TE-030) */
+.tree {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  outline: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar) transparent;
+}
+
+.tree::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.tree::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tree::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+  border-radius: 4px;
+}
+
+.tree::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-hover);
+}
+
+.tree-empty {
+  padding: var(--space-3);
+  color: var(--color-muted);
+  font-size: 11px;
+}
+
+/* 트리 행 겉모습 (FR-16 9항목) */
+/* 1. 배경 강조가 탐색기 좌우 끝까지 닿음 */
+.tree-row {
+  display: flex;
+  align-items: center;
+  height: var(--tree-row-height);
+  width: 100%;
+  padding: 0 var(--space-2);
+  position: relative;
+  text-align: left;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.tree-row:hover {
+  background: var(--color-hover);
+}
+
+/* Selected items share inactive and focused selection styles. */
+.tree-row.selected {
+  background: var(--color-bg);
+}
+
+.tree:focus-within .tree-row.selected {
+  outline: 1px solid var(--color-focus-ring);
+  outline-offset: -1px;
+}
+
+.editor-pane:focus-within .tab.active {
+  outline: 1px solid var(--color-focus-ring);
+  outline-offset: -1px;
+}
+
+.editor-pane:focus {
+  outline: none;
+}
+
+/* 7. 깊이마다 들여쓰기 안내선 */
+.tree-row::before {
+  content: "";
+  position: absolute;
+  height: 100%;
+  border-left: 1px solid var(--color-divider);
+  left: calc(var(--depth) * var(--tree-indent) + var(--space-3));
+}
+
+.tree-row.is-root::before {
+  display: none;
+}
+
+/* 2. 들여쓰기는 twistie의 margin-left로 8px 배수 지정 */
+/* 3. 5x5 꺾쇠 회전 (> 접힘, v 펼침) */
+.twistie {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 var(--icon-size);
+  width: var(--icon-size);
+  height: var(--icon-size);
+  margin-left: calc(var(--depth) * var(--tree-indent));
+}
+
+.twistie::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border: solid currentColor;
+  border-width: 0 calc(var(--icon-stroke) * 1px) calc(var(--icon-stroke) * 1px) 0;
+  margin-left: -2px;
+  transform: rotate(-45deg);
+  transition: transform .12s;
+}
+
+.tree-row.expanded .twistie::before {
+  margin-left: 0;
+  margin-top: -2px;
+  transform: rotate(45deg);
+}
+
+/* 3. 단말 행에서는 twistie 자리(16px)만 두고 감춤 */
+/* 4. 이로써 같은 깊이의 디렉토리 행과 단말 행의 아이콘 x좌표가 동일해짐 */
+.tree-row.leaf .twistie::before,
+.tree-row:not(.directory) .twistie::before {
+  visibility: hidden;
+}
+
+/* 8. 디렉토리는 본문색, 단말은 흐린 색. 아이콘도 글자색을 따름 (currentColor) */
+.tree-row.leaf {
+  color: var(--color-muted);
+}
+
+.tree-icon {
+  flex: 0 0 var(--icon-size);
+  width: var(--icon-size);
+  height: var(--icon-size);
+  margin-right: var(--space-1);
+  stroke: currentColor;
+  stroke-width: var(--icon-stroke);
+}
+
+/* 파일 타입 아이콘 테마 (FR-30) — 글꼴 글리프와 SVG 파일도 같은 자리에 같은 크기로 앉는다 */
+.tree-icon.glyph-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: var(--icon-size);
+  font-style: normal;
+  stroke: none;
+  user-select: none;
+}
+
+.tree-icon.seti-icon {
+  font-family: "seti";
+  font-size: 14px;
+}
+
+.tree-icon.codicon-icon {
+  font-family: "codicon";
+  font-size: var(--icon-size);
+}
+
+img.tree-icon {
+  object-fit: contain;
+  vertical-align: middle;
+  stroke: none;
+}
+
+/* 9. 이름이 넘칠 때 접기 표시와 아이콘은 줄어들지 않고 이름만 말줄임 */
+.tree-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 구분 스플리터 (FR-15) */
+/* 폭과 자리는 v0.1과 같다 — 탐색기 오른쪽에 5px로 붙는다 (structure.css 74·121행).
+   음수 여백으로 탐색기 위에 걸치면 보기 영역의 시작 x가 v0.1과 어긋난다 (NFR-1) */
+.splitter {
+  position: relative;
+  width: 5px;
+  cursor: col-resize;
+  background: var(--color-bg);
+  flex-shrink: 0;
+  z-index: 6;
+}
+
+/* 4. 보기 영역 (구역 4) */
+.workspace {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 에디터 2분할 (FR-24, TE-038) */
+.editor-panes {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  position: relative;
+}
+
+.pane-splitter {
+  position: relative;
+  width: 4px;
+  cursor: col-resize;
+  background: var(--color-bg);
+  flex-shrink: 0;
+}
+
+/* Match the header background across the resize gaps. */
+.splitter::before,
+.pane-splitter::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--tab-bar-height);
+  background: var(--color-surface);
+  pointer-events: none;
+}
+
+/* Keep the hit area wide while drawing a single pixel on the integer grid. */
+.splitter::after,
+.pane-splitter::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 1px;
+  width: 1px;
+  background: var(--color-divider);
+  pointer-events: none;
+}
+
+.splitter:hover::after,
+.splitter.dragging::after,
+.pane-splitter:hover::after {
+  background: var(--color-border);
+}
+
+/* 탭 바 & 탭 (FR-23, TE-037) */
+.tab-bar {
+  display: flex;
+  align-items: flex-end;
+  height: var(--tab-bar-height);
+  background: var(--color-surface);
+  padding: 0 var(--space-1) 0 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tab-list {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+  overflow-x: auto;
+  height: 100%;
+  align-items: flex-end;
+}
+
+/* 탭 상단 모서리 라운딩 제외 (border-radius: 0 고정) */
+.tab {
+  display: flex;
+  align-items: center;
+  height: var(--tree-row-height);
+  max-width: 180px;
+  /* 안쪽 여백은 v0.1과 같게 — 왼쪽 4px, 오른쪽 2px (structure.css 128행) */
+  padding: 0 2px 0 var(--space-1);
+  background: transparent;
+  color: var(--color-muted);
+  border-radius: 0;
+  font-size: 11px;
+  cursor: pointer;
+  user-select: none;
+  border: 0;
+}
+
+.tab:hover {
+  background: var(--color-hover);
+}
+
+.tab.active {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* 탭 드래그 앤 드롭 시각 효과 (FR-24) */
+.tab.dragging {
+  opacity: 0.4;
+}
+
+.editor-pane.drag-target {
+  outline: 1px dashed var(--color-focus-ring);
+  outline-offset: -1px;
+}
+
+.tab-list.drag-target {
+  background: var(--color-hover);
+}
+
+/* 미리보기 탭: 이탤릭체 라벨 (FR-23) */
+.tab.preview .tab-label {
+  font-style: italic;
+}
+
+.tab-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: var(--space-1);
+  border-radius: var(--radius);
+  opacity: 0.6;
+}
+
+.tab-close:hover {
+  opacity: 1;
+  background: var(--color-hover);
+}
+
+.tab-bar-actions {
+  display: flex;
+  align-items: center;
+}
+
+.view-container {
+  flex: 1;
+  height: calc(100% - var(--tab-bar-height));
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--color-bg);
+  position: relative;
+}
+
+.view-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+/* 프리셋의 참조 보기 (FR-33) — 이름 또는 주소 한 줄만 놓인다 */
+.reference-view {
+  padding: var(--space-4);
+  color: var(--color-text);
+  font-size: var(--font-size);
+  line-height: var(--line-height);
+  word-break: break-all;
+}
+
+.reference-view-name {
+  font-weight: 600;
+}
+
+.reference-view-path {
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+}
+
+/* Zen 모드 스타일 (FR-25, TE-039) */
+.shell-root.zen {
+  grid-template-rows: 0 minmax(0, 1fr) 0;
+}
+
+.shell-root.zen .menu-bar,
+.shell-root.zen .activity-rail,
+.shell-root.zen .sidebar,
+.shell-root.zen .splitter,
+.shell-root.zen .status-bar {
+  display: none !important;
+}
+
+/* 5. 상태 표시줄 (구역 5) */
+.status-bar {
+  grid-row: 3;
+  height: var(--status-height);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-2);
+  font-size: 11px;
+  color: var(--color-muted);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.status-left, .status-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Transient application message, including Help > About. */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--status-height) + var(--space-3));
+  z-index: 200;
+  min-width: 190px;
+  padding: var(--space-2) var(--space-3);
+  transform: translateX(-50%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 4px 16px var(--color-bg);
+  font-size: var(--font-size);
+  text-align: center;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+  transition: opacity .12s, visibility .12s;
+}
+
+.toast.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* SVG 아이콘 공통 */
+.icon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  stroke: currentColor;
+  stroke-width: var(--icon-stroke);
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* 메뉴바 테마 전환 아이콘 (NFR-5) */
+.theme-icon path,
+.theme-icon circle[fill]:not([fill="none"]) {
+  fill: var(--color-muted);
+  stroke: none;
+}

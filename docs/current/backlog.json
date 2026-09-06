@@ -30,7 +30,7 @@
   "tasks": [
     {
       "id": "MV-001",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P1",
       "title": "템플릿 반입과 Electron 갈래만 남기기",
@@ -40,11 +40,11 @@
       "note": "껍데기는 복사만 하고 고치지 않는다 (D-2, D-3)",
       "parent": null,
       "deps": [],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-002",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P1",
       "title": "앱 프리셋 자리 만들기",
@@ -56,11 +56,11 @@
       "deps": [
         "MV-001"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-003",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P1",
       "title": "빌드 없는 로드 경로와 vendor 자리",
@@ -72,11 +72,11 @@
       "deps": [
         "MV-001"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-004",
-      "status": "todo",
+      "status": "done",
       "priority": "medium",
       "category": "P1",
       "title": "실행 안내 문서",
@@ -88,7 +88,7 @@
       "deps": [
         "MV-001"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-005",

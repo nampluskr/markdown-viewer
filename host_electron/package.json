@@ -1,0 +1,12 @@
+{
+  "name": "host-electron",
+  "version": "0.1.0",
+  "private": true,
+  "main": "host/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}

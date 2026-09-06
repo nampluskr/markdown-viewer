@@ -1,0 +1,90 @@
+:root {
+  --font-ui: "Segoe UI", "Malgun Gothic", sans-serif;
+  --font-mono: "Cascadia Mono", "D2Coding", "Malgun Gothic", monospace;
+  --font-size: 12px;
+  --line-height: 1.4;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --menu-height: 30px;
+  --status-height: 30px;
+  --rail-width: var(--menu-height);
+  --sidebar-width: 280px;
+  --tree-row-height: 22px;
+  --tab-bar-height: 30px;
+  --tree-indent: 8px;
+  --icon-size: 16px;
+  --icon-stroke: 1;
+  --radius: 6px;
+}
+
+/*
+  아이콘 선명도 규칙 — 깨뜨리지 말 것.
+
+  1px 선이 픽셀 하나에 정확히 얹히려면 선의 중심선이 반정수 좌표(2.5, 8.5 ...)에
+  있어야 한다. icons.svg의 모든 직선은 그 규칙으로 그려져 있다. 그런데 아이콘
+  상자(16x16)가 화면에서 반픽셀 위치에 놓이면 그 정렬이 통째로 무너진다.
+
+  세로 가운데 정렬에서 아이콘의 top은 (컨테이너 높이 - 16) / 2 로 계산되므로,
+  아이콘을 담는 컨테이너의 높이는 반드시 짝수여야 한다. 아래 값들이 그 대상이며
+  전부 짝수로 유지한다. 홀수(29px, 21px 등)로 바꾸면 아이콘 전체가 다시 흐려진다.
+
+    menu-height 30 / status-height 30 / tree-row-height 22
+    sidebar-header 30 / menu-item 24
+
+  가로 여백(space-1..4)도 같은 이유로 짝수를 유지한다.
+  icon-size 16과 icon-stroke 1도 고정이다. 굵기를 1이 아닌 값으로 바꾸면
+  좌표 정렬이 무의미해진다.
+*/
+
+:root[data-theme="white"] {
+  --color-bg: #ffffff;
+  --color-surface: #f0f2f5;
+  --color-raised: #e4e8ec;
+  --color-text: #1f2328;
+  --color-muted: #3b4249;
+  --color-border: #949494;
+  --color-divider: #dcdcdc;
+  --color-hover: #e4e8ec;
+  --color-selected: #d4d4d4;
+  --color-selected-inactive: #e8e8e8;
+  --color-scrollbar: #c1c1c1;
+  --color-scrollbar-hover: #a0a0a0;
+  --color-focus-ring: #707070;
+  --color-danger: #c42b1c;
+}
+
+:root[data-theme="gray"] {
+  --color-bg: #353b44;
+  --color-surface: #444c55;
+  --color-raised: #505964;
+  --color-text: #e6edf3;
+  --color-muted: #ced6de;
+  --color-border: #a1acb8;
+  --color-divider: #717a89;
+  --color-hover: #505964;
+  --color-selected: #6f7884;
+  --color-selected-inactive: #555c68;
+  --color-scrollbar: #717a89;
+  --color-scrollbar-hover: #86909f;
+  --color-focus-ring: #b2bcc7;
+  --color-danger: #f48771;
+}
+
+:root[data-theme="dark"] {
+  --color-bg: #090c10;
+  --color-surface: #161b22;
+  --color-raised: #21262d;
+  --color-text: #e6edf3;
+  --color-muted: #c0c8d1;
+  --color-border: #6e7681;
+  --color-divider: #3c444d;
+  --color-hover: #21262d;
+  --color-selected: #343b44;
+  --color-selected-inactive: #1c2128;
+  --color-scrollbar: #30363d;
+  --color-scrollbar-hover: #3c444d;
+  --color-focus-ring: #8f8f8f;
+  --color-danger: #ff9b8e;
+}
