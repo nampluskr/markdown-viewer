@@ -251,6 +251,8 @@
           return;
         }
 
+        openDocumentLink(combined);
+
         if (typeof window !== 'undefined') {
           var event = new CustomEvent('app:open_path', {
             bubbles: true,
@@ -260,6 +262,26 @@
         }
       });
     });
+  }
+
+  function openDocumentLink(targetPath) {
+    var shell = (typeof window !== 'undefined' && window.__shell) || null;
+    if (shell && shell.slots && typeof shell.slots.executeOpenRoute === 'function') {
+      shell.slots.executeOpenRoute('open_document', shell.tabManager, {
+        path: targetPath,
+        title: getBaseName(targetPath)
+      });
+      if (shell.renderEditor) shell.renderEditor();
+      return;
+    }
+    if (shell && shell.tabManager) {
+      shell.tabManager.openTab({
+        kind: 'markdown',
+        resource: { path: targetPath },
+        title: getBaseName(targetPath)
+      });
+      if (shell.renderEditor) shell.renderEditor();
+    }
   }
 
   // 1. 마크다운 뷰어

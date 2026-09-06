@@ -93,38 +93,54 @@ function createDomainHandler({ resolveInsideRoot, isInsideRoot, getRootPath, fai
         return fail('NOT_FOUND', ERROR_MESSAGES.NOT_FOUND);
       }
 
-      // 절대경로 or .. 상위 이탈 차단 (FR-8)
+      // 1. 절대경로 / 드라이브 문자 차단 (FR-8)
       if (path.isAbsolute(imgPath) || /^[a-zA-Z]:/.test(imgPath) || imgPath.startsWith('/') || imgPath.startsWith('\\')) {
         return fail('ROOT_ESCAPE', ERROR_MESSAGES.ROOT_ESCAPE);
       }
 
-      // 상대경로 결합
-      const combined = baseDir ? path.join(baseDir, imgPath).replace(/\\/g, '/') : imgPath;
-      const parts = combined.split(/[\\/]/);
-      if (parts.includes('..')) {
+      const root = getRootPath();
+      if (!root) return fail('NOT_FOUND', ERROR_MESSAGES.NOT_FOUND);
+
+      // 2. baseDir 기준 상대경로 해결 및 루트 경계 검사 (FR-8)
+      const candidate = baseDir ? path.resolve(root, baseDir, imgPath) : path.resolve(root, imgPath);
+      if (!isInsideRoot(candidate)) {
         return fail('ROOT_ESCAPE', ERROR_MESSAGES.ROOT_ESCAPE);
       }
 
-      const resolved = resolveInsideRoot(combined);
-      if (!resolved.ok) return resolved;
+      // 3. 파일 존재 여부 확인
+      if (!fs.existsSync(candidate)) {
+        return fail('NOT_FOUND', ERROR_MESSAGES.NOT_FOUND);
+      }
 
-      const fullPath = resolved.value;
-      const ext = path.extname(fullPath).toLowerCase();
+      let stat;
+      try {
+        stat = fs.statSync(candidate);
+      } catch (err) {
+        const code = err.code === 'EACCES' ? 'PERMISSION_DENIED' : 'READ_FAILED';
+        return fail(code, ERROR_MESSAGES[code]);
+      }
+
+      if (stat.isDirectory()) {
+        return fail('UNSUPPORTED_TARGET', ERROR_MESSAGES.UNSUPPORTED_TARGET);
+      }
+
+      // 4. 지원 확장자 확인 (png, jpg, jpeg, gif, webp, svg)
+      const ext = path.extname(candidate).toLowerCase();
       const mime = IMAGE_MIME_MAP[ext];
       if (!mime) {
         return fail('UNSUPPORTED_TARGET', '지원하지 않는 이미지 형식입니다 (' + ext + ').');
       }
 
       try {
-        const buffer = fs.readFileSync(fullPath);
+        const buffer = fs.readFileSync(candidate);
         const dataUri = 'data:' + mime + ';base64,' + buffer.toString('base64');
         return result({
           dataUri: dataUri,
           mime: mime,
-          path: combined
+          path: path.relative(root, candidate).replace(/\\/g, '/')
         });
       } catch (err) {
-        const code = err.code === 'ENOENT' ? 'NOT_FOUND' : (err.code === 'EACCES' ? 'PERMISSION_DENIED' : 'READ_FAILED');
+        const code = err.code === 'EACCES' ? 'PERMISSION_DENIED' : 'READ_FAILED';
         return fail(code, ERROR_MESSAGES[code]);
       }
     }

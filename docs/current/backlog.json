@@ -333,7 +333,7 @@
     },
     {
       "id": "MV-020",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P5",
       "title": "상대경로 이미지 표시",
@@ -345,11 +345,11 @@
       "deps": [
         "MV-012"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-021",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P5",
       "title": "이미지 실패와 루트 밖 참조 처리",
@@ -361,11 +361,11 @@
       "deps": [
         "MV-020"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-022",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P5",
       "title": "상대경로 문서 링크를 앱 안에서 열기",
@@ -377,11 +377,11 @@
       "deps": [
         "MV-012"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-023",
-      "status": "todo",
+      "status": "done",
       "priority": "medium",
       "category": "P5",
       "title": "외부 URL과 루트 밖 링크 처리",
@@ -393,7 +393,7 @@
       "deps": [
         "MV-022"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-024",

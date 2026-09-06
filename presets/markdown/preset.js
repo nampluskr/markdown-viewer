@@ -112,6 +112,22 @@
           slots.registerViewProvider('code', views.code);
         }
       }
+
+      // 5. 여는 경로 자리 (FR-9) — 상대경로 문서 링크 등에서 탭 열기
+      slots.registerOpenRoute('open_document', function (tabManager, options) {
+        if (!tabManager || !options || !options.path) return null;
+        var p = options.path;
+        var title = options.title || (function (fp) {
+          var cut = Math.max(fp.lastIndexOf('/'), fp.lastIndexOf('\\'));
+          return cut >= 0 ? fp.slice(cut + 1) : fp;
+        })(p);
+
+        return tabManager.openTab({
+          kind: 'markdown',
+          resource: { path: p },
+          title: title
+        });
+      });
     }
   };
 
