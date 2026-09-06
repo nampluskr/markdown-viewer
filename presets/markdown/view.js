@@ -1,4 +1,4 @@
-// presets/markdown/view.js — 마크다운 및 문서 뷰어 컴포넌트
+// presets/markdown/view.js — 마크다운 및 텍스트/코드 뷰어 컴포넌트
 (function (root) {
   'use strict';
 
@@ -9,56 +9,62 @@
     return cut >= 0 ? normalized.slice(cut + 1) : normalized;
   }
 
-  var markdownView = {
-    kind: 'markdown',
+  function createSimpleView(kindName, className) {
+    return {
+      kind: kindName,
 
-    createView: function (container, tab) {
-      var el = null;
-      var destroyed = false;
+      createView: function (container, tab) {
+        var el = null;
+        var destroyed = false;
 
-      return {
-        mount: function (mountTarget) {
-          if (destroyed) return;
-          var target = mountTarget || container;
-          if (!target || !target.ownerDocument) return;
+        return {
+          mount: function (mountTarget) {
+            if (destroyed) return;
+            var target = mountTarget || container;
+            if (!target || !target.ownerDocument) return;
 
-          el = target.ownerDocument.createElement('div');
-          el.className = 'markdown-view-container';
+            el = target.ownerDocument.createElement('div');
+            el.className = className;
 
-          var header = target.ownerDocument.createElement('div');
-          header.className = 'markdown-view-title';
-          header.textContent = (tab && tab.title) || getBaseName(tab && tab.resource && tab.resource.path);
-          el.appendChild(header);
+            var header = target.ownerDocument.createElement('div');
+            header.className = className + '-title';
+            header.textContent = (tab && tab.title) || getBaseName(tab && tab.resource && tab.resource.path);
+            el.appendChild(header);
 
-          target.appendChild(el);
-        },
+            target.appendChild(el);
+          },
 
-        activate: function () {
-          if (el) el.classList.add('active');
-        },
+          activate: function () {
+            if (el) el.classList.add('active');
+          },
 
-        deactivate: function () {
-          if (el) el.classList.remove('active');
-        },
+          deactivate: function () {
+            if (el) el.classList.remove('active');
+          },
 
-        resize: function () {
-        },
+          resize: function () {
+          },
 
-        destroy: function () {
-          destroyed = true;
-          if (el && el.parentNode) {
-            el.parentNode.removeChild(el);
+          destroy: function () {
+            destroyed = true;
+            if (el && el.parentNode) {
+              el.parentNode.removeChild(el);
+            }
+            el = null;
           }
-          el = null;
-        }
-      };
-    }
+        };
+      }
+    };
+  }
+
+  var views = {
+    markdown: createSimpleView('markdown', 'markdown-view-container'),
+    code: createSimpleView('code', 'code-view-container')
   };
 
   if (typeof module === 'object' && module.exports) {
-    module.exports = { markdown: markdownView };
+    module.exports = views;
   } else {
-    root.MarkdownPresetViews = root.MarkdownPresetViews || {};
-    root.MarkdownPresetViews.markdown = markdownView;
+    root.MarkdownPresetViews = views;
   }
 })(typeof globalThis !== 'undefined' ? globalThis : (typeof self !== 'undefined' ? self : this));

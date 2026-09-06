@@ -92,7 +92,7 @@
     },
     {
       "id": "MV-005",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P2",
       "title": "지원 확장자 목록과 트리 항목 거르기",
@@ -104,11 +104,11 @@
       "deps": [
         "MV-002"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-006",
-      "status": "todo",
+      "status": "done",
       "priority": "medium",
       "category": "P2",
       "title": "대소문자를 구분하지 않는 확장자 판정",
@@ -120,11 +120,11 @@
       "deps": [
         "MV-005"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-007",
-      "status": "todo",
+      "status": "done",
       "priority": "high",
       "category": "P2",
       "title": "행 선택 매핑 — 확장자로 보기 종류 나누기",
@@ -136,11 +136,11 @@
       "deps": [
         "MV-005"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-008",
-      "status": "todo",
+      "status": "done",
       "priority": "medium",
       "category": "P2",
       "title": "트리 탐색 중 미리 읽기 없음 확인",
@@ -152,7 +152,7 @@
       "deps": [
         "MV-007"
       ],
-      "done_at": null
+      "done_at": "2026-09-07"
     },
     {
       "id": "MV-009",
